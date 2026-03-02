@@ -31,7 +31,7 @@ export default defineConfig({
   
   use: {
     baseURL: envConfig.baseUrl,
-    headless: false,
+    headless: !!process.env.CI, // headless en CI, avec fenêtre en local
     
     // Ralentir les actions si SLOW_MODE=true
     launchOptions: slowMode ? { slowMo: 1000 } : {},
