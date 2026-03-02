@@ -1,0 +1,50 @@
+{
+  "name": "apprendre-playwright",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run clean-reports && npx playwright test",
+    "clean-reports": "rm -rf playwright-report/* test-results/*",
+    
+    "test:headed": "npm run clean-reports && npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "test:debug": "npx playwright test --debug",
+    
+    "report": "npx playwright show-report",
+    "posttest": "npx playwright show-report",
+    
+    "test:dev": "NODE_ENV=dev npx playwright test",
+    "test:dev:headed": "NODE_ENV=dev npx playwright test --headed",
+    "test:dev:ui": "NODE_ENV=dev npx playwright test --ui",
+    
+    "test:preprod": "NODE_ENV=preprod npx playwright test",
+    "test:preprod:headed": "NODE_ENV=preprod npx playwright test --headed",
+    "test:preprod:ui": "NODE_ENV=preprod npx playwright test --ui",
+    
+    "test:recipe": "NODE_ENV=recipe npx playwright test",
+    "test:recipe:headed": "NODE_ENV=recipe npx playwright test --headed",
+    "test:recipe:ui": "NODE_ENV=recipe npx playwright test --ui",
+    
+    "test:prod": "NODE_ENV=prod npx playwright test",
+    "test:prod:headed": "NODE_ENV=prod npx playwright test --headed",
+    
+    "test:slow": "SLOW_MODE=true npx playwright test --headed",
+    
+    "test:chromium": "npx playwright test --project=chromium",
+    "test:firefox": "npx playwright test --project=firefox",
+    "test:webkit": "npx playwright test --project=webkit",
+    
+    "test:patient": "npx playwright test tests/Patrimoine_Test_SI_Medical/00_TNR-Patient --headed"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.3.1"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.3.0"
+  }
+}
