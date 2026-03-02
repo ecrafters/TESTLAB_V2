@@ -2,7 +2,8 @@ name: Playwright - TNR Patient (Preprod)
 
 on:
   schedule:
-    - cron: '0 7,11,15 * * *'
+    # 8h, 12h, 16h UTC (Mettez à jour selon votre fuseau horaire)
+    - cron: '0 8,12,16 * * *'
   push:
     branches: [main, develop]
     paths:
