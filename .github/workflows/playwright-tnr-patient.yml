@@ -1,0 +1,63 @@
+name: Playwright - TNR Patient (Preprod)
+
+on:
+  schedule:
+    - cron: '0 7,11,15 * * *'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'tests/Patrimoine_Test_SI_Medical/00_TNR-Patient/**'
+      - 'playwright.config.js'
+      - 'config/env.*.json'
+      - '.github/workflows/playwright-tnr-patient.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'tests/Patrimoine_Test_SI_Medical/00_TNR-Patient/**'
+      - 'playwright.config.js'
+      - 'config/env.*.json'
+      - '.github/workflows/playwright-tnr-patient.yml'
+  workflow_dispatch:
+    inputs:
+      env_name:
+        description: 'Environnement (preprod, dev, recipe, prod)'
+        required: false
+        default: 'preprod'
+
+env:
+  NODE_ENV: preprod
+
+jobs:
+  tnr-patient:
+    name: TNR Patient
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run TNR Patient tests
+        run: npx playwright test tests/Patrimoine_Test_SI_Medical/00_TNR-Patient/
+        env:
+          NODE_ENV: ${{ github.event.inputs.env_name || 'preprod' }}
+
+      - name: Upload reports and artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-tnr-patient-${{ github.run_id }}
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
