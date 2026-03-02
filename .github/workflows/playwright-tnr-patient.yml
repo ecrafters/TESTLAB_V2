@@ -47,8 +47,8 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Run TNR Patient spec (preprod)
-        run: npm run test:preprod tests/Patrimoine_Test_SI_Medical/00_TNR-Patient/00_TNR-Patient.spec.ts
+      - name: Run TNR Patient tests (preprod)
+        run: npm run test:preprod -- tests/Patrimoine_Test_SI_Medical/00_TNR-Patient/
         env:
           NODE_ENV: ${{ github.event.inputs.env_name || 'preprod' }}
 
