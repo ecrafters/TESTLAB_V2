@@ -56,56 +56,68 @@ jobs:
       - name: Generate Email Report
         if: always()
         run: |
-          node -e '
-            const fs = require("fs");
-            const path = "playwright-report/results.json";
-            let output = "📋 RÉSULTAT DES TESTS E2E - TNR PATIENT\n\n";
+          # Création du script JS via cat pour éviter les problèmes de quoting dans le YAML
+          cat << 'EOF' > generate-report.js
+          const fs = require('fs');
+          const resultsPath = 'playwright-report/results.json';
+          let output = '📋 RÉSULTAT DES TESTS E2E - TNR PATIENT\n\n';
 
-            if (fs.existsSync(path)) {
-              try {
-                const json = JSON.parse(fs.readFileSync(path));
-                const total = json.stats.expected;
-                const failed = json.stats.unexpected;
-                const passed = total - failed;
-                
-                output += `Statut Global: ${failed === 0 ? "✅ SUCCÈS" : "❌ ÉCHEC"}\n`;
-                output += `Résumé: ${passed} réussis / ${failed} échoués / ${total} total\n`;
-                output += `Durée: ${(json.stats.duration / 1000).toFixed(2)}s\n\n`;
-                output += "DÉTAILS DES TESTS :\n-------------------\n";
+          if (fs.existsSync(resultsPath)) {
+            try {
+              const data = fs.readFileSync(resultsPath, 'utf8');
+              const json = JSON.parse(data);
+              const total = json.stats.expected;
+              const failed = json.stats.unexpected;
+              const passed = total - failed;
 
-                function processSuite(suite) {
-                  if (suite.specs) {
-                    suite.specs.forEach(spec => {
-                      const test = spec.tests[0];
-                      // On prend le dernier résultat connu (retry)
-                      const result = test.results[test.results.length - 1]; 
-                      const icon = result.status === "passed" ? "✅" : "❌";
-                      output += `${icon} ${spec.title}\n`;
-                      
-                      if (result.status !== "passed" && result.error) {
-                        // Nettoyage sommaire des codes couleurs ANSI et prise de la première ligne d erreur
-                        let errorMsg = result.error.message.replace(/\\u001b\\[.*?m/g, "").split("\\n")[0];
-                        if (errorMsg.length > 200) errorMsg = errorMsg.substring(0, 200) + "...";
-                        output += `   ⚠️ Erreur: ${errorMsg}\n`;
-                      }
-                    });
-                  }
-                  if (suite.suites) suite.suites.forEach(processSuite);
+              output += `Statut Global: ${failed === 0 ? "✅ SUCCÈS" : "❌ ÉCHEC"}\n`;
+              output += `Résumé: ${passed} réussis / ${failed} échoués / ${total} total\n`;
+              output += `Durée: ${(json.stats.duration / 1000).toFixed(2)}s\n\n`;
+              output += 'DÉTAILS DES TESTS :\n-------------------\n';
+
+              function processSuite(suite) {
+                if (suite.specs) {
+                  suite.specs.forEach(spec => {
+                    const test = spec.tests[0];
+                    const result = test.results[test.results.length - 1];
+                    const icon = result.status === 'passed' ? '✅' : '❌';
+                    output += `${icon} ${spec.title}\n`;
+
+                    if (result.status !== 'passed' && result.error) {
+                      // Nettoyage des codes couleurs ANSI (regex simplifiée)
+                      let errorMsg = result.error.message.replace(/\u001b\[.*?m/g, '').split('\n')[0];
+                      if (errorMsg.length > 300) errorMsg = errorMsg.substring(0, 300) + '...';
+                      output += `   ⚠️ Erreur: ${errorMsg}\n`;
+                    }
+                  });
                 }
-                
-                json.suites.forEach(processSuite);
-                
-              } catch (e) {
-                output += "⚠️ Erreur lors de la génération du rapport : " + e.message;
+                if (suite.suites) suite.suites.forEach(processSuite);
               }
-            } else {
-              output += "⚠️ Fichier de résultats non trouvé (playwright-report/results.json).";
+
+              json.suites.forEach(processSuite);
+
+            } catch (e) {
+              output += '⚠️ Erreur lors de la lecture du rapport JSON : ' + e.message;
             }
-            
-            output += `\n\n🔗 Lien vers le run GitHub :\n${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-            
-            fs.writeFileSync("email_body.txt", output);
-          '
+          } else {
+            output += '⚠️ Fichier de résultats non trouvé (playwright-report/results.json).';
+          }
+
+          const serverUrl = process.env.GITHUB_SERVER_URL;
+          const repo = process.env.GITHUB_REPOSITORY;
+          const runId = process.env.GITHUB_RUN_ID;
+          output += `\n\n🔗 Lien vers le run GitHub :\n${serverUrl}/${repo}/actions/runs/${runId}`;
+
+          fs.writeFileSync('email_body.txt', output);
+          console.log('Rapport généré dans email_body.txt');
+          EOF
+          
+          # Exécution du script
+          node generate-report.js
+        env:
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
 
       - name: Send email notification
         if: always()
