@@ -73,8 +73,8 @@ test('TNR-Patient', async ({ page }) => {
         const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
         const sexePatient = sexe === 'male' ? 'Masculin' : 'Féminin';
         // Remplir le formulaire de création de patient
-        await page.getByRole('textbox').first().fill('Ibrahima');
-        await page.getByRole('textbox').nth(1).fill('NDIAYE');
+        await page.getByRole('textbox').first().fill(firstNamePatient);
+        await page.getByRole('textbox').nth(1).fill(lastNamePatient);
         await page.getByRole('textbox', { name: '000000000' }).fill(`77${faker.number.int({ min: 1000000, max: 9999999 })}`);
         // Sélectionner le sexe du patient
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner un sexe$/ }).first().click();

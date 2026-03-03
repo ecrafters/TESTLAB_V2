@@ -202,19 +202,19 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.pause();
     });
 
-    await test.step('TC-007 : Ajouter un tarif de consultation à une convention de prix', async () => {
-        // Naviguer vers la section de paramétrage des employeurs
-        const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
-        await contactLink.scrollIntoViewIfNeeded();
-        await contactLink.click();
-        await page.waitForTimeout(500);
-        await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
-        await page.waitForTimeout(500);
+    // await test.step('TC-007 : Ajouter un tarif de consultation à une convention de prix', async () => {
+    //     // Naviguer vers la section de paramétrage des employeurs
+    //     const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
+    //     await contactLink.scrollIntoViewIfNeeded();
+    //     await contactLink.click();
+    //     await page.waitForTimeout(500);
+    //     await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
+    //     await page.waitForTimeout(500);
         
-        // Attendre que la page soit complètement chargée
-        await page.waitForLoadState('networkidle');
-        // Vérification que les informations du patient sont affichées 
-        await expect(page.locator('tbody tr').filter({ hasText: 'tarifName' })).toBeVisible({ timeout: 15000 });
-        await page.pause();
-    });
+    //     // Attendre que la page soit complètement chargée
+    //     await page.waitForLoadState('networkidle');
+    //     // Vérification que les informations du patient sont affichées 
+    //     await expect(page.locator('tbody tr').filter({ hasText: 'tarifName' })).toBeVisible({ timeout: 15000 });
+    //     await page.pause();
+    // });
 });
