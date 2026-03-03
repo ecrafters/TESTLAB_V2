@@ -53,6 +53,60 @@ jobs:
         env:
           NODE_ENV: ${{ github.event.inputs.env_name || 'preprod' }}
 
+      - name: Generate Email Report
+        if: always()
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = "playwright-report/results.json";
+            let output = "📋 RÉSULTAT DES TESTS E2E - TNR PATIENT\n\n";
+
+            if (fs.existsSync(path)) {
+              try {
+                const json = JSON.parse(fs.readFileSync(path));
+                const total = json.stats.expected;
+                const failed = json.stats.unexpected;
+                const passed = total - failed;
+                
+                output += `Statut Global: ${failed === 0 ? "✅ SUCCÈS" : "❌ ÉCHEC"}\n`;
+                output += `Résumé: ${passed} réussis / ${failed} échoués / ${total} total\n`;
+                output += `Durée: ${(json.stats.duration / 1000).toFixed(2)}s\n\n`;
+                output += "DÉTAILS DES TESTS :\n-------------------\n";
+
+                function processSuite(suite) {
+                  if (suite.specs) {
+                    suite.specs.forEach(spec => {
+                      const test = spec.tests[0];
+                      // On prend le dernier résultat connu (retry)
+                      const result = test.results[test.results.length - 1]; 
+                      const icon = result.status === "passed" ? "✅" : "❌";
+                      output += `${icon} ${spec.title}\n`;
+                      
+                      if (result.status !== "passed" && result.error) {
+                        // Nettoyage sommaire des codes couleurs ANSI et prise de la première ligne d erreur
+                        let errorMsg = result.error.message.replace(/\\u001b\\[.*?m/g, "").split("\\n")[0];
+                        if (errorMsg.length > 200) errorMsg = errorMsg.substring(0, 200) + "...";
+                        output += `   ⚠️ Erreur: ${errorMsg}\n`;
+                      }
+                    });
+                  }
+                  if (suite.suites) suite.suites.forEach(processSuite);
+                }
+                
+                json.suites.forEach(processSuite);
+                
+              } catch (e) {
+                output += "⚠️ Erreur lors de la génération du rapport : " + e.message;
+              }
+            } else {
+              output += "⚠️ Fichier de résultats non trouvé (playwright-report/results.json).";
+            }
+            
+            output += `\n\n🔗 Lien vers le run GitHub :\n${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            
+            fs.writeFileSync("email_body.txt", output);
+          '
+
       - name: Send email notification
         if: always()
         uses: dawidd6/action-send-mail@v3
@@ -65,15 +119,7 @@ jobs:
           subject: "[TESTS E2E] TNR Patient - ${{ job.status }}"
           to: ${{ secrets.MAIL_TO }}
           from: "GitHub Actions <${{ secrets.MAIL_USERNAME }}>"
-          body: |
-            Résultat des tests TNR Patient (Preprod)
-            
-            Statut : ${{ job.status }}
-            Branche : ${{ github.ref_name }}
-            Auteur : ${{ github.actor }}
-            
-            Lien vers le run et les rapports :
-            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          body: file://email_body.txt
 
       - name: Upload reports and artifacts
         if: always()
