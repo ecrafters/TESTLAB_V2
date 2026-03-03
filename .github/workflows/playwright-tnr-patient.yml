@@ -53,6 +53,28 @@ jobs:
         env:
           NODE_ENV: ${{ github.event.inputs.env_name || 'preprod' }}
 
+      - name: Send email notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[TESTS E2E] TNR Patient - ${{ job.status }}"
+          to: ${{ secrets.MAIL_TO }}
+          from: "GitHub Actions <${{ secrets.MAIL_USERNAME }}>"
+          body: |
+            Résultat des tests TNR Patient (Preprod)
+            
+            Statut : ${{ job.status }}
+            Branche : ${{ github.ref_name }}
+            Auteur : ${{ github.actor }}
+            
+            Lien vers le run et les rapports :
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
       - name: Upload reports and artifacts
         if: always()
         uses: actions/upload-artifact@v4

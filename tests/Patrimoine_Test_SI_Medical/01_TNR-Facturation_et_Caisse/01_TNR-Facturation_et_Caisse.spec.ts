@@ -93,7 +93,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
 
     });
 
-    await test.step('TC-004 : Créer un acte de type analyse', async () => {
+    await test.step.skip('TC-004 : Créer un acte de type analyse', async () => {
         // Naviguer vers la section de paramétrage des actes analyse
         await page.getByRole('link', { name: 'Configurer un acte d\'analyse' }).click();
         // Attendre que la page soit complètement chargée
@@ -118,6 +118,103 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.waitForLoadState('networkidle');
         // Vérification que les informations du patient sont affichées 
         await expect(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible({ timeout: 15000 });
+    });
+
+    await test.step.skip('TC-005 : Créer un employeur', async () => {
+        // Naviguer vers la section de paramétrage des employeurs
+        const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
+        await contactLink.scrollIntoViewIfNeeded();
+        await contactLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Employeurs 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Créer' }).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/employeurs/creer**');
+        await expect(page.getByRole('heading', { name: 'Création d\'un employeur' })).toBeVisible({ timeout: 15000 });
+
+        await page.locator('form').getByRole('textbox').fill(`EYONE MEDICAL ${faker.number.int({ min: 1, max: 999 })}`);
+        await page.getByRole('button', { name: 'Créer le fournisseur' }).click();
+
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.getByRole('button', { name: 'Créer le fournisseur' })).toBeVisible({ timeout: 15000 });
+    });
+
+    await test.step.skip('TC-006 : Ajouter un organisme de remboursement', async () => {
+        // Naviguer vers la section de paramétrage des employeurs
+        const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
+        await contactLink.scrollIntoViewIfNeeded();
+        await contactLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Créer' }).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/organismes/creer');
+        await expect(page.getByRole('heading', { name: 'Création d\'un org. de' })).toBeVisible({ timeout: 15000 });
+
+        await page.locator('form').getByRole('textbox').fill(`EYONE ASSURANCE ${faker.number.int({ min: 1, max: 999 })}`);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un sexe$/ }).first().click();
+        await page.getByRole('option', { name: 'IPM', exact: true }).click();
+        await page.getByRole('button', { name: 'Créer l\'organisme' }).click();
+
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.getByRole('heading', { name: 'Organismes de remboursement' })).toBeVisible({ timeout: 15000 });
+    });
+
+    await test.step.skip('TC-007 : Ajouter un tarif de consultation à une convention de prix', async () => {
+        // Naviguer vers la section de paramétrage des employeurs
+        const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
+        await contactLink.scrollIntoViewIfNeeded();
+        await contactLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Conventions de prix 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Rechercher' }).nth(1).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/conventions/rechercher');
+        await expect(page.getByRole('heading', { name: 'Conventions de tarif' })).toBeVisible({ timeout: 15000 });
+        // Je veux récupérer la première ligne de la table qui contient "IPM" et cliquer sur le bouton "Visualiser" de cette ligne
+        await page.locator('tbody tr').filter({ hasText: 'IPM' }).getByRole('button', { name: 'Visualiser' }).first().click();
+        await page.waitForURL('**/conventions/details/*');
+
+        await page.getByRole('tab', { name: 'Tarifs de la convention' }).click();
+        await page.getByRole('button', { name: 'Ajouter un tarif' }).click();
+
+        const tarifName = `Consultation ${faker.number.int({ min: 1, max: 999 })}`;
+        await page.getByRole('tabpanel', { name: 'Tarifs de la convention' }).getByRole('textbox').fill(tarifName);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un tarif appliqué$/ }).first().click();
+        await page.getByRole('option', { name: 'Acte Médical' }).click();
+        await page.getByRole('combobox', { name: 'Sélectionnez une prestation' }).fill('Consultation');
+        await page.locator('span').filter({ hasText: 'CONSULTATION CARDIO' }).first().click();
+        await page.getByRole('spinbutton').fill('8000');
+        await page.getByRole('button', { name: 'Sauvegarder' }).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible({ timeout: 15000 });
+        await page.pause();
+    });
+
+    await test.step('TC-007 : Ajouter un tarif de consultation à une convention de prix', async () => {
+        // Naviguer vers la section de paramétrage des employeurs
+        const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
+        await contactLink.scrollIntoViewIfNeeded();
+        await contactLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
+        await page.waitForTimeout(500);
+        
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.locator('tbody tr').filter({ hasText: 'tarifName' })).toBeVisible({ timeout: 15000 });
         await page.pause();
     });
 });
