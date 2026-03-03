@@ -72,6 +72,7 @@ Les commandes suivantes exécutent tous les tests sur l'environnement spécifié
 - **Débogage** : `npm run test:debug`
 - **Ouvrir le rapport** : `npm run report`
 - **Nettoyer les rapports** : `npm run clean-reports`
+- **Lanceur rapide Patient (Headed)** : `npm run test:patient`
 
 ### Exécuter un test spécifique
 
@@ -91,9 +92,10 @@ Les pipelines sont définis dans `.github/workflows/`.
     - Exécute tous les tests.
 
 2.  **Playwright - TNR Patient (Preprod)** (`playwright-tnr-patient.yml`) :
-    - **Planifié** : Se lance automatiquement à 08h, 12h et 16h (Paris).
+    - **Planifié** : Se lance automatiquement à 08h, 12h et 16h (UTC).
     - **Manuel** : Peut être lancé manuellement via l'onglet "Actions" de GitHub.
-    - Exécute uniquement les tests du dossier `00_TNR-Patient`.
+    - **Périmètre** : Exécute uniquement les tests du dossier `00_TNR-Patient`.
+    - **Notifications** : Envoie un email avec le rapport détaillé (succès/échec, étapes validation, erreurs) via Gmail.
 
 ## 📊 Rapports et Artefacts
 

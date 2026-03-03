@@ -6,36 +6,30 @@ import { envConfig } from '../../../config/env.loader';
 test('01_TNR-Facturation et Caisse', async ({ page }) => {
     let hospitalName: string;
 
-    await test.step("Connexion", async () => {
-        await login(page);  // Utilise automatiquement les identifiants de l'environnement
-    });
-
-    await test.step('Récupérer le nom de l\'hôpital', async () => {
-        await getHospitalName(page).then((name: string) => hospitalName = name);
-    });
-
     await test.step('TC-001 : Créer un acte de type ambulatoire', async () => {
+        await login(page);  // Utilise automatiquement les identifiants de l'environnement
+        await getHospitalName(page).then((name: string) => hospitalName = name);
         // Naviguer vers la section de paramétrage des actes
         await page.locator('#vertical-menu-btn').click();
-        const parametresLink = page.getByRole('link', { name: 'Paramètrages' });
-        await parametresLink.scrollIntoViewIfNeeded();
-        await parametresLink.click();
-        // Attendre 0,5 seconde pour s'assurer que le menu est bien chargé
-        await page.waitForTimeout(500);
-        await page.getByRole('link', { name: 'Prestations médicales 󰅀' }).click();
-        await page.getByRole('link', { name: 'Configurer un acte', exact: true }).click();
+        // const parametresLink = page.getByRole('link', { name: 'Paramètrages' });
+        // await parametresLink.scrollIntoViewIfNeeded();
+        // await parametresLink.click();
+        // // Attendre 0,5 seconde pour s'assurer que le menu est bien chargé
+        // await page.waitForTimeout(500);
+        // await page.getByRole('link', { name: 'Prestations médicales 󰅀' }).click();
+        // await page.getByRole('link', { name: 'Configurer un acte', exact: true }).click();
 
-        // Attendre que la page soit complètement chargée
-        await page.waitForURL('**/settings/prest/set-act**');
-        await expect(page).toHaveURL(`${envConfig.baseUrl}/settings/prest/set-act`);
+        // // Attendre que la page soit complètement chargée
+        // await page.waitForURL('**/settings/prest/set-act**');
+        // await expect(page).toHaveURL(`${envConfig.baseUrl}/settings/prest/set-act`);
 
-        // Vérification que les informations du patient sont affichées 
-        await expect(page.getByRole('heading', { name: 'Création d\'un acte' })).toBeVisible({ timeout: 15000 });
+        // // Vérification que les informations du patient sont affichées 
+        // await expect(page.getByRole('heading', { name: 'Création d\'un acte' })).toBeVisible({ timeout: 15000 });
 
-        await page.getByRole('textbox').nth(1).fill(`Acte ambulatoire ${faker.number.int({ min: 1, max: 9999 })}`);
-        await page.getByRole('spinbutton').fill('12000');
-        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un service$/ }).first().click();
-        await page.getByRole('option', { name: hospitalName }).click();
+        // await page.getByRole('textbox').nth(1).fill(`Acte ambulatoire ${faker.number.int({ min: 1, max: 9999 })}`);
+        // await page.getByRole('spinbutton').fill('12000');
+        // await page.locator('div').filter({ hasText: /^Veuillez sélectionner un service$/ }).first().click();
+        // await page.getByRole('option', { name: hospitalName }).click();
         // await page.getByRole('button', { name: 'Initialiser l\'acte' }).click();
 
         // // Attendre que la page soit complètement chargée
@@ -202,19 +196,264 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.pause();
     });
 
-    // await test.step('TC-007 : Ajouter un tarif de consultation à une convention de prix', async () => {
-    //     // Naviguer vers la section de paramétrage des employeurs
-    //     const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
-    //     await contactLink.scrollIntoViewIfNeeded();
-    //     await contactLink.click();
-    //     await page.waitForTimeout(500);
-    //     await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
-    //     await page.waitForTimeout(500);
-        
-    //     // Attendre que la page soit complètement chargée
-    //     await page.waitForLoadState('networkidle');
-    //     // Vérification que les informations du patient sont affichées 
-    //     await expect(page.locator('tbody tr').filter({ hasText: 'tarifName' })).toBeVisible({ timeout: 15000 });
-    //     await page.pause();
-    // });
+    await test.step.skip('TC-008 : Ajouter un tarif de type radiologie à une convention de prix', async () => {
+        // Naviguer vers la section de paramétrage des employeurs
+        const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
+        await contactLink.scrollIntoViewIfNeeded();
+        await contactLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Conventions de prix 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Rechercher' }).nth(1).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/conventions/rechercher');
+        await expect(page.getByRole('heading', { name: 'Conventions de tarif' })).toBeVisible({ timeout: 15000 });
+        // Je veux récupérer la première ligne de la table qui contient "IPM" et cliquer sur le bouton "Visualiser" de cette ligne
+        await page.locator('tbody tr').filter({ hasText: 'IPM' }).getByRole('button', { name: 'Visualiser' }).first().click();
+        await page.waitForURL('**/conventions/details/*');
+
+        await page.getByRole('tab', { name: 'Tarifs de la convention' }).click();
+        await page.getByRole('button', { name: 'Ajouter un tarif' }).click();
+
+        const tarifName = `Radio ${faker.number.int({ min: 1, max: 999 })}`;
+        await page.getByRole('tabpanel', { name: 'Tarifs de la convention' }).getByRole('textbox').fill(tarifName);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un tarif appliqué$/ }).first().click();
+        await page.getByRole('option', { name: 'Acte Médical' }).click();
+        await page.getByRole('combobox', { name: 'Sélectionnez une prestation' }).fill('RADIO');
+        await page.locator('span').filter({ hasText: 'RADIO THORAX' }).first().click();
+        await page.getByRole('spinbutton').fill('30000');
+        await page.getByRole('button', { name: 'Sauvegarder' }).click();
+
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible({ timeout: 15000 });
+        await page.pause();
+    });
+
+    await test.step.skip('TC-009 : Ajouter un tarif de type analyse à une convention de prix', async () => {
+        // Naviguer vers la section de paramétrage des employeurs
+        const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
+        await contactLink.scrollIntoViewIfNeeded();
+        await contactLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Conventions de prix 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Rechercher' }).nth(1).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/conventions/rechercher');
+        await expect(page.getByRole('heading', { name: 'Conventions de tarif' })).toBeVisible({ timeout: 15000 });
+        // Je veux récupérer la première ligne de la table qui contient "IPM" et cliquer sur le bouton "Visualiser" de cette ligne
+        await page.locator('tbody tr').filter({ hasText: 'IPM' }).getByRole('button', { name: 'Visualiser' }).first().click();
+        await page.waitForURL('**/conventions/details/*');
+
+        await page.getByRole('tab', { name: 'Tarifs de la convention' }).click();
+        await page.getByRole('button', { name: 'Ajouter un tarif' }).click();
+
+        const tarifName = `Analyse ${faker.number.int({ min: 1, max: 999 })}`;
+        await page.getByRole('tabpanel', { name: 'Tarifs de la convention' }).getByRole('textbox').fill(tarifName);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un tarif appliqué$/ }).first().click();
+        await page.getByRole('option', { name: 'Acte Médical' }).click();
+        await page.getByRole('combobox', { name: 'Sélectionnez une prestation' }).fill('ANALYSE');
+        await page.locator('span').filter({ hasText: 'ANALYSE Urine' }).first().click();
+        await page.getByRole('spinbutton').fill('40000');
+        await page.getByRole('button', { name: 'Sauvegarder' }).click();
+
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible({ timeout: 15000 });
+    });
+
+    await test.step.skip('TC-010 : Ajouter un tarif de type ambulatoire à une convention de prix', async () => {
+        // Naviguer vers la section de paramétrage des employeurs
+        const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
+        await contactLink.scrollIntoViewIfNeeded();
+        await contactLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Conventions de prix 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Rechercher' }).nth(1).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/conventions/rechercher');
+        await expect(page.getByRole('heading', { name: 'Conventions de tarif' })).toBeVisible({ timeout: 15000 });
+        // Je veux récupérer la première ligne de la table qui contient "IPM" et cliquer sur le bouton "Visualiser" de cette ligne
+        await page.locator('tbody tr').filter({ hasText: 'IPM' }).getByRole('button', { name: 'Visualiser' }).first().click();
+        await page.waitForURL('**/conventions/details/*');
+
+        await page.getByRole('tab', { name: 'Tarifs de la convention' }).click();
+        await page.getByRole('button', { name: 'Ajouter un tarif' }).click();
+
+        const tarifName = `Ambulatoire ${faker.number.int({ min: 1, max: 999 })}`;
+        await page.getByRole('tabpanel', { name: 'Tarifs de la convention' }).getByRole('textbox').fill(tarifName);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un tarif appliqué$/ }).first().click();
+        await page.getByRole('option', { name: 'Acte Médical' }).click();
+        await page.getByRole('combobox', { name: 'Sélectionnez une prestation' }).fill('Ambulatoire');
+        await page.locator('span').filter({ hasText: 'ACT AMBULATOIRE' }).first().click();
+        await page.getByRole('spinbutton').fill('15000');
+        await page.getByRole('button', { name: 'Sauvegarder' }).click();
+
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible({ timeout: 15000 });
+    });
+
+    await test.step.skip('TC-011 : Ajouter une convention de prix', async () => {
+        // Naviguer vers la section de paramétrage des employeurs
+        const contactLink = page.getByRole('link', { name: ' Contacts & Interloc. 󰅀' });
+        await contactLink.scrollIntoViewIfNeeded();
+        await contactLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Org. de remboursement 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Conventions de prix 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Rechercher' }).nth(1).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/conventions/rechercher');
+        await expect(page.getByRole('heading', { name: 'Conventions de tarif' })).toBeVisible({ timeout: 15000 });
+        // Je veux récupérer la première ligne de la table qui contient "IPM" et cliquer sur le bouton "Visualiser" de cette ligne
+        await page.locator('tbody tr').filter({ hasText: 'IPM' }).getByRole('button', { name: 'Visualiser' }).first().click();
+        await page.waitForURL('**/conventions/details/*');
+
+        await page.getByRole('tab', { name: 'Tarifs de la convention' }).click();
+        await page.getByRole('button', { name: 'Ajouter un tarif' }).click();
+
+        const tarifName = `Ambulatoire ${faker.number.int({ min: 1, max: 999 })}`;
+        await page.getByRole('tabpanel', { name: 'Tarifs de la convention' }).getByRole('textbox').fill(tarifName);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un tarif appliqué$/ }).first().click();
+        await page.getByRole('option', { name: 'Acte Médical' }).click();
+        await page.getByRole('combobox', { name: 'Sélectionnez une prestation' }).fill('Ambulatoire');
+        await page.locator('span').filter({ hasText: 'ACT AMBULATOIRE' }).first().click();
+        await page.getByRole('spinbutton').fill('15000');
+        await page.getByRole('button', { name: 'Sauvegarder' }).click();
+
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible({ timeout: 15000 });
+        await page.pause();
+    });
+
+    await test.step.skip('TC-012 : Créer un produit de pharmacie', async () => {
+        // Naviguer vers la section de paramétrage des produits
+        const productLink = await page.getByRole('link', { name: ' Produits 󰅀' });
+        await productLink.scrollIntoViewIfNeeded();
+        await productLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Créer' }).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/products/create');
+        await expect(page.getByRole('heading', { name: 'Création d\'un produit' })).toBeVisible({ timeout: 15000 });
+
+        await page.getByRole('textbox').nth(1).fill('Paracétamol 500mg');
+        await page.locator('.ng-select-container').first().click();
+        await page.getByRole('option', { name: 'PHARMACEUTIQUE', exact: true }).click();
+        await page.locator('.ng-tns-c313-1.ng-select.ng-select-single.ng-select-searchable.ng-select-clearable.ng-untouched > .ng-select-container').first().click();
+        await page.getByRole('option', { name: 'Boîte' }).click();
+        await page.locator('.w-100 > .ng-select-container').click();
+        await page.getByRole('option', { name: 'C1' }).click();
+        await page.getByRole('textbox').nth(2).fill('5000');
+        await page.locator('div:nth-child(4) > .col-md-6 > .ng-tns-c313-1.ng-select > .ng-select-container').click();
+        await page.getByRole('option', { name: 'Vente', exact: true }).click();
+        await page.getByRole('spinbutton').nth(1).fill('500');
+        await page.getByRole('spinbutton').nth(2).fill('1000');
+        await page.getByRole('button', { name: 'Sauvegarder' }).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.getByRole('heading', { name: 'Produits' })).toBeVisible({ timeout: 15000 });
+    });
+
+    await test.step.skip('TC-013 : Créer un emplacement de stocks', async () => {
+        // Naviguer vers la section de paramétrage des produits
+        const productLink = await page.getByRole('link', { name: ' Produits 󰅀' });
+        await productLink.scrollIntoViewIfNeeded();
+        await productLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Emplacements de stock 󰅀' }).click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Créer' }).nth(1).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/stocks-placement/create');
+        await expect(page.getByRole('heading', { name: 'Création emplacement de stock' })).toBeVisible({ timeout: 5000 });
+        await page.getByRole('combobox', { name: 'Nom du produit' }).fill('Paracétamol');
+        await page.locator('span').filter({ hasText: 'Paracétamol 500mg' }).first().click();
+        await page.waitForLoadState('networkidle');
+        await page.locator('.ng-select-container').click();
+        await page.getByRole('option', { name: 'PHARMACIE', exact: true }).click();
+        await page.getByRole('button', { name: 'Créer' }).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.getByRole('heading', { name: 'Liste des emplacements de' })).toBeVisible({ timeout: 15000 });
+    });
+
+    await test.step.skip('TC-014 : Ajouter un emplacement de stocks au produit', async () => {
+        // Naviguer vers la section de paramétrage des produits
+        const productLink = await page.getByRole('link', { name: ' Produits 󰅀' });
+        await productLink.scrollIntoViewIfNeeded();
+        await productLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Rechercher' }).first().click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/products/list');
+        await expect(page.getByRole('heading', { name: 'Produits' })).toBeVisible({ timeout: 15000 });
+        // Je veux récupérer la première ligne de la table qui contient "Paracétamol 100mg" et cliquer sur le bouton "Visualiser" de cette ligne
+        await page.locator('tbody tr').filter({ hasText: 'Paracétamol 100mg' }).locator('.dropdown-toggle.mdi').first().click();
+        await page.locator('.dropdown-menu.show .dropdown-item', { hasText: 'Visualiser' }).click();
+        await page.waitForURL('**/editorview/edit/*');
+        await page.waitForLoadState('networkidle');
+
+        await page.getByRole('tab', { name: 'Gestion de stock' }).click();
+        await page.getByRole('button', { name: 'Ajouter un emplacement de' }).click();
+        await page.getByRole('button', { name: 'Ajouter un emplacement de' }).click();
+        await page.locator('.ng-select-container').click();
+        await page.getByRole('option', { name: 'PHARMACIE', exact: true }).click();
+        await page.getByRole('button', { name: 'Sauvegarder' }).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.locator('tbody tr').filter({ hasText: 'PHARMACIE' })).toBeVisible({ timeout: 15000 });
+    });
+
+    await test.step('TC-015 : Créer une quote-part de répartition sur les produits', async () => {
+        // Naviguer vers la section de paramétrage des produits
+        const productLink = await page.getByRole('link', { name: ' Produits 󰅀' });
+        await productLink.scrollIntoViewIfNeeded();
+        await productLink.click();
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Rechercher' }).first().click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/products/list');
+        await expect(page.getByRole('heading', { name: 'Produits' })).toBeVisible({ timeout: 15000 });
+        // Je veux récupérer la première ligne de la table qui contient "Paracétamol 100mg" et cliquer sur le bouton "Visualiser" de cette ligne
+        await page.locator('tbody tr').filter({ hasText: 'Paracétamol 100mg' }).locator('.dropdown-toggle.mdi').first().click();
+        await page.locator('.dropdown-menu.show .dropdown-item', { hasText: 'Visualiser' }).click();
+        await page.waitForURL('**/editorview/edit/*');
+        await page.waitForLoadState('networkidle');
+
+        await page.getByRole('tab', { name: 'Quote Part Fournisseur' }).click();
+        await page.waitForLoadState('networkidle');
+        await page.getByRole('button', { name: 'Ajouter une quote part' }).click();
+        const quotePartName = `Quote part ${faker.number.int({ min: 1, max: 999 })}`;
+        await page.getByRole('textbox', { name: 'Nom Quote part' }).fill(quotePartName);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un élément$/ }).first().click();
+        await page.getByRole('option', { name: 'PHARMACIE NATIONALE', exact: true }).click();
+        await page.getByText('Par pourcentage').click();
+        await page.getByRole('spinbutton', { name: 'Valeur' }).fill('80');
+        await page.getByRole('button', { name: 'Ajouter' }).click();
+        // Attendre que la page soit complètement chargée
+        await page.waitForLoadState('networkidle');
+        // Vérification que les informations du patient sont affichées 
+        await expect(page.locator('tbody tr').filter({ hasText: quotePartName })).toBeVisible({ timeout: 15000 });
+        await page.pause();
+    });
 });

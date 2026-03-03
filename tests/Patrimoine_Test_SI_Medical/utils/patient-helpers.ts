@@ -136,6 +136,6 @@ export async function getHospitalName(page: Page) {
     // Récupérer le texte
     const hospitalName: string = await headerElement.textContent() ?? '';
     // Équivalent de cy.log()
-    console.log(`Utilisateur affiché dans le header: ${hospitalName}`);
+    console.log(`Hôpital affiché dans le header: ${hospitalName}`);
     return hospitalName;
 }
