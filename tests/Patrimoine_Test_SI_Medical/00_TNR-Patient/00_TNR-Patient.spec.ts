@@ -12,13 +12,8 @@ import {
 // test.setTimeout(300000); // Augmenter le timeout global à 5 minutes
 test('TNR-Patient', async ({ page }) => {
 
-    await test.step("Connexion", async () => {
-        await login(page);  // Utilise automatiquement les identifiants de l'environnement
-    });
-
-
     await test.step('TC-001 : Créer un patient sans assurance', async () => {
-
+        await login(page);  // Utilise automatiquement les identifiants de l'environnement
         await navigateToPatientsList(page);
 
         // Essayons avec getByText (méthode la plus flexible)
@@ -119,6 +114,11 @@ test('TNR-Patient', async ({ page }) => {
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner une ethnie$/ }).first().click();
         await page.getByRole('option', { name: 'WOLOF' }).click();
         await page.getByRole('button', { name: 'Enregistrer' }).click();
+        // Vérification du bouton de confirmation de la création du patient par une condition
+        const confirmButton = page.getByRole('button', { name: 'OUI' });
+        if (confirmButton) {
+            await confirmButton.click();
+        }
         // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
         await page.waitForURL('**/patient/list');
         await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
