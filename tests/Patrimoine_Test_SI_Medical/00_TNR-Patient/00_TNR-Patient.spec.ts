@@ -115,10 +115,14 @@ test('TNR-Patient', async ({ page }) => {
         await page.getByRole('option', { name: 'WOLOF' }).click();
         await page.getByRole('button', { name: 'Enregistrer' }).click();
         // Vérification du bouton de confirmation de la création du patient par une condition
-        const confirmButton = page.getByRole('button', { name: 'OUI' });
-        if (confirmButton) {
-            await confirmButton.click();
+        const checkLikenessPatient = page.waitForResponse('**/patients/check-likeness-patient');
+        const response = await checkLikenessPatient;
+        expect(response.status()).toBe(200);
+        const responseBody = await response.json();
+        if (responseBody.length > 0) {
+            await page.getByRole('button', { name: 'OUI' }).click();
         }
+        await page.pause();
         // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
         await page.waitForURL('**/patient/list');
         await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
