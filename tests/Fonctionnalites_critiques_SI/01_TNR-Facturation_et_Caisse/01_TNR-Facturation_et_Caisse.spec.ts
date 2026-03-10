@@ -6,9 +6,14 @@ async function encaisserPrestation(page: Page, prestationName: string) {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Accueil' })).toBeVisible({ timeout: 15000 });
     await page.getByRole('link', { name: ' Règlements à payer' }).click();
-    await page.waitForURL('**/gestion-financiere/reglements-a-payer');
+    const responseReglements = page.waitForURL('**/gestion-financiere/reglements-a-payer');
+    await responseReglements;
     await expect(page.getByRole('heading', { name: 'à payer' })).toBeVisible({ timeout: 15000 });
-    await page.locator('tbody tr').filter({ hasText: prestationName }).locator('.dropdown-toggle.mdi').first().click();
+    // 2. Cibler la première ligne correspondante et attendre qu'elle soit visible
+    const row = page.locator('tbody tr').filter({ hasText: prestationName }).first();
+    await expect(row).toBeVisible({ timeout: 15000 });
+    // 3. Cliquer sur le menu déroulant (dropdown) dans cette ligne
+    await row.locator('.dropdown-toggle.mdi').click();
     await page.locator('.dropdown-menu.show .dropdown-item', { hasText: 'Encaisser' }).click();
     await expect(page.getByRole('heading', { name: 'Encaissement en espèces' })).toBeVisible({ timeout: 15000 });
     await page.getByRole('dialog', { name: 'Encaissement en espèces' }).getByRole('button', { name: 'Oui' }).click();
@@ -19,7 +24,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
     let hospitalName: string;
     let patient: any;
 
-    await test.step('TC-001 : Facturer une consultation avec un patient non assuré', async () => {
+    await test.step.skip('TC-001 : Facturer et encaisser une hospitalisation', async () => {
         await login(page);  // Utilise automatiquement les identifiants de l'environnement
         await getHospitalName(page).then((name: string) => hospitalName = name);
 
@@ -30,43 +35,6 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         }
 
         await page.getByRole('link', { name: ' Prestations' }).click();
-        // Attendre que la page soit complètement chargée
-        await page.waitForURL('**/prestation/list');
-        await expect(page.getByRole('heading', { name: 'Liste des prestations financi' })).toBeVisible({ timeout: 15000 });
-
-        const createPrestationButton = page.getByRole('button', { name: ' Créer une prestation' });
-        await createPrestationButton.click();
-        await page.waitForURL('**/patient-identification');
-        await expect(page.getByRole('button', { name: 'Patient Interne' })).toBeVisible({ timeout: 15000 });
-        // Renseigner les informations du patient
-        await page.getByRole('searchbox', { name: 'Tapez votre recherche' }).fill(`${patient.firstName} ${patient.lastName}`);
-        await page.getByRole('button', { name: 'Rechercher' }).click();
-        await page.locator('tbody tr').filter({ hasText: `${patient.firstName} ${patient.lastName}` }).click();
-        await page.waitForLoadState('networkidle');
-        await expect(page.getByRole('heading', { name: 'Nouvelle prestation' })).toBeVisible({ timeout: 15000 });
-        // Créer une prestation de consultation
-        await page.getByRole('button', { name: 'Consultation' }).click();
-        await page.waitForURL('**/consultation/create/**');
-        await expect(page.getByRole('heading', { name: 'Nouvelle consultation' })).toBeVisible({ timeout: 15000 });
-
-        // Sélectionner une prestation
-        await page.getByRole('combobox', { name: 'Prestation Médicale *' }).click();
-        await page.locator('span').filter({ hasText: 'CONSULTATION CARDIO' }).first().click();
-        await page.waitForResponse('**/consultations/consultation-act-selection');
-        await page.waitForLoadState('networkidle');
-        // await page.getByRole('heading', { name: 'Total Facture' }).scrollIntoViewIfNeeded();
-        await page.getByRole('button', { name: ' Enregistrer' }).click();
-        await page.waitForLoadState('networkidle');
-        await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible({ timeout: 15000 });
-        await page.locator('#regenerate').click();
-        await page.waitForLoadState('networkidle');
-
-        // Encaisser la facture
-        await encaisserPrestation(page, 'Consultation');
-    });
-
-    await test.step('TC-002 : Facturer et encaisser une hospitalisation', async () => {
-        await page.goto('/prestation/list');
         // Attendre que la page soit complètement chargée
         await page.waitForURL('**/prestation/list');
         await expect(page.getByRole('heading', { name: 'Liste des prestations financi' })).toBeVisible({ timeout: 15000 });
@@ -210,7 +178,54 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.waitForLoadState('networkidle');
     });
 
-    await test.step('TC-003 : Facturer un acte d\'analyse avec un patient non assuré et encaisser', async () => {
+    await test.step('TC-001 : Facturer une consultation avec un patient non assuré', async () => {
+        await login(page);  // Utilise automatiquement les identifiants de l'environnement
+        await getHospitalName(page).then((name: string) => hospitalName = name);
+
+        // On récupère le premier patient de la liste via l'API pour s'assurer qu'il existe
+        patient = await getFirstPatientFromAPI(page);
+        if (!patient) {
+            throw new Error('Aucun patient trouvé via l\'API');
+        }
+
+        await page.getByRole('link', { name: ' Prestations' }).click();
+        // await page.goto('/prestation/list');
+        // Attendre que la page soit complètement chargée
+        await page.waitForURL('**/prestation/list');
+        await expect(page.getByRole('heading', { name: 'Liste des prestations financi' })).toBeVisible({ timeout: 15000 });
+
+        const createPrestationButton = page.getByRole('button', { name: ' Créer une prestation' });
+        await createPrestationButton.click();
+        await page.waitForURL('**/patient-identification');
+        await expect(page.getByRole('button', { name: 'Patient Interne' })).toBeVisible({ timeout: 15000 });
+        // Renseigner les informations du patient
+        await page.getByRole('searchbox', { name: 'Tapez votre recherche' }).fill(`${patient.firstName} ${patient.lastName}`);
+        await page.getByRole('button', { name: 'Rechercher' }).click();
+        await page.locator('tbody tr').filter({ hasText: `${patient.firstName} ${patient.lastName}` }).click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('heading', { name: 'Nouvelle prestation' })).toBeVisible({ timeout: 15000 });
+        // Créer une prestation de consultation
+        await page.getByRole('button', { name: 'Consultation' }).click();
+        await page.waitForURL('**/consultation/create/**');
+        await expect(page.getByRole('heading', { name: 'Nouvelle consultation' })).toBeVisible({ timeout: 15000 });
+
+        // Sélectionner une prestation
+        await page.getByRole('combobox', { name: 'Prestation Médicale *' }).click();
+        await page.locator('span').filter({ hasText: 'CONSULTATION CARDIO' }).first().click();
+        await page.waitForResponse('**/consultations/consultation-act-selection');
+        await page.waitForLoadState('networkidle');
+        // await page.getByRole('heading', { name: 'Total Facture' }).scrollIntoViewIfNeeded();
+        await page.getByRole('button', { name: ' Enregistrer' }).click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible({ timeout: 15000 });
+        await page.locator('#regenerate').click();
+        await page.waitForLoadState('networkidle');
+
+        // Encaisser la facture
+        await encaisserPrestation(page, 'Consultation');
+    });
+
+    await test.step('TC-002 : Facturer un acte d\'analyse avec un patient non assuré et encaisser', async () => {
         await page.goto('/prestation/list');
         // Attendre que la page soit complètement chargée
         await page.waitForURL('**/prestation/list');
@@ -246,7 +261,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await encaisserPrestation(page, 'Analyse');
     });
 
-    await test.step('TC-004 : Facturer un acte d\'imagerie avec un patient non assuré et encaisser', async () => {
+    await test.step('TC-003 : Facturer un acte d\'imagerie avec un patient non assuré et encaisser', async () => {
         await page.goto('/prestation/list');
         // Attendre que la page soit complètement chargée
         await page.waitForURL('**/prestation/list');

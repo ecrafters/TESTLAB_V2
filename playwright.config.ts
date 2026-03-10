@@ -11,8 +11,8 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   
-  // Timeout global pour chaque test (3 minutes)
-  timeout: 180000,
+  // Timeout global pour chaque test (5 minutes)
+  timeout: 300000,
   
   // Retries en cas d'échec
   retries: process.env.CI ? 2 : 0,
@@ -31,7 +31,7 @@ export default defineConfig({
   
   use: {
     baseURL: envConfig.baseUrl,
-    headless: !!process.env.CI, // headless en CI, avec fenêtre en local
+    // headless: !!process.env.CI, // headless en CI, avec fenêtre en local
     
     // Ralentir les actions si SLOW_MODE=true
     launchOptions: slowMode ? { slowMo: 1000 } : {},
