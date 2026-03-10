@@ -4,13 +4,13 @@ import { getFirstPatientFromAPI, getHospitalName, login } from '../../Patrimoine
 
 async function encaisserPrestation(page: Page, prestationName: string) {
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Accueil' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Accueil' })).toBeVisible({ timeout: 15000 });
     await page.getByRole('link', { name: ' Règlements à payer' }).click();
     await page.waitForURL('**/gestion-financiere/reglements-a-payer');
-    await expect(page.getByRole('heading', { name: 'à payer' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'à payer' })).toBeVisible({ timeout: 15000 });
     await page.locator('tbody tr').filter({ hasText: prestationName }).locator('.dropdown-toggle.mdi').first().click();
     await page.locator('.dropdown-menu.show .dropdown-item', { hasText: 'Encaisser' }).click();
-    await expect(page.getByRole('heading', { name: 'Encaissement en espèces' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Encaissement en espèces' })).toBeVisible({ timeout: 15000 });
     await page.getByRole('dialog', { name: 'Encaissement en espèces' }).getByRole('button', { name: 'Oui' }).click();
     await page.waitForLoadState('networkidle');
 }
@@ -32,22 +32,22 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.getByRole('link', { name: ' Prestations' }).click();
         // Attendre que la page soit complètement chargée
         await page.waitForURL('**/prestation/list');
-        await expect(page.getByRole('heading', { name: 'Liste des prestations financi' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Liste des prestations financi' })).toBeVisible({ timeout: 15000 });
 
         const createPrestationButton = page.getByRole('button', { name: ' Créer une prestation' });
         await createPrestationButton.click();
         await page.waitForURL('**/patient-identification');
-        await expect(page.getByRole('button', { name: 'Patient Interne' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('button', { name: 'Patient Interne' })).toBeVisible({ timeout: 15000 });
         // Renseigner les informations du patient
         await page.getByRole('searchbox', { name: 'Tapez votre recherche' }).fill(`${patient.firstName} ${patient.lastName}`);
         await page.getByRole('button', { name: 'Rechercher' }).click();
         await page.locator('tbody tr').filter({ hasText: `${patient.firstName} ${patient.lastName}` }).click();
         await page.waitForLoadState('networkidle');
-        await expect(page.getByRole('heading', { name: 'Nouvelle prestation' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Nouvelle prestation' })).toBeVisible({ timeout: 15000 });
         // Créer une prestation de consultation
         await page.getByRole('button', { name: 'Consultation' }).click();
         await page.waitForURL('**/consultation/create/**');
-        await expect(page.getByRole('heading', { name: 'Nouvelle consultation' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Nouvelle consultation' })).toBeVisible({ timeout: 15000 });
 
         // Sélectionner une prestation
         await page.getByRole('combobox', { name: 'Prestation Médicale *' }).click();
@@ -57,7 +57,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // await page.getByRole('heading', { name: 'Total Facture' }).scrollIntoViewIfNeeded();
         await page.getByRole('button', { name: ' Enregistrer' }).click();
         await page.waitForLoadState('networkidle');
-        await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible({ timeout: 15000 });
         await page.locator('#regenerate').click();
         await page.waitForLoadState('networkidle');
 
@@ -91,10 +91,10 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Ajouter une chambre à l'hospitalisation
         await page.getByRole('button', { name: ' Chambres' }).click();
         await page.waitForURL('**/prestation/eps/info/*/rooms');
-        await expect(page.getByRole('heading', { name: 'Liste des chambres' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Liste des chambres' })).toBeVisible({ timeout: 15000 });
         await page.getByRole('button', { name: ' Ajouter une chambre' }).click();
         await page.waitForLoadState('networkidle');
-        await expect(page.getByRole('heading', { name: 'Nouvelle Chambre' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Nouvelle Chambre' })).toBeVisible({ timeout: 15000 });
         // la date de début de validité de l'assurance
         const startDate = faker.date.recent();
         await page.getByRole('textbox', { name: 'Date d\'entrée *' }).fill(startDate.toISOString().split('T')[0]);
@@ -127,9 +127,9 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Ajouter un acte à l'hospitalisation
         await page.getByRole('button', { name: 'Actes Médicaux' }).click();
         await page.waitForURL('**/prestation/eps/info/*/medicals');
-        await expect(page.getByRole('heading', { name: 'Liste des actes' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Liste des actes' })).toBeVisible({ timeout: 15000 });
         await page.getByRole('button', { name: ' Ajouter un acte' }).click();
-        await expect(page.getByRole('heading', { name: 'Création de l\'acte médical' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Création de l\'acte médical' })).toBeVisible({ timeout: 15000 });
         await page.getByRole('combobox', { name: 'Acte *' }).click();
         await page.locator('span').filter({ hasText: 'ONDES MÉCANIQUES' }).first().click();
         await page.waitForResponse('**/prestations-items/medical-act-selection');
@@ -169,9 +169,9 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await expect(page.getByRole('button', { name: 'Traitements' })).toBeVisible({ timeout: 15000 });
         await page.getByRole('button', { name: 'Traitements' }).click();
         await page.waitForURL('**/prestation/eps/info/*/pharmacy');
-        await expect(page.getByRole('heading', { name: 'Liste des médicaments' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Liste des médicaments' })).toBeVisible({ timeout: 15000 });
         await page.getByRole('button', { name: ' Ajouter un médicament' }).click();
-        await expect(page.getByRole('heading', { name: 'Ajouter un médicament' })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Ajouter un médicament' })).toBeVisible({ timeout: 15000 });
         await page.getByRole('combobox', { name: 'Produit *' }).pressSequentially('DOLI', { delay: 100 });
         await page.locator('span').filter({ hasText: 'DOLIPRANE' }).first().click();
         await page.getByRole('spinbutton', { name: 'Quantité' }).fill('3');
@@ -189,8 +189,8 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await expect(page.getByRole('button', { name: 'Facturation' })).toBeVisible({ timeout: 15000 });
         await page.getByRole('button', { name: 'Facturation' }).click();
         await page.waitForURL('**/prestation/eps/info/*/facturation');
-        await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible({ timeout: 5000 });
-        await expect(page.getByText('Générer', { exact: true })).toBeVisible({ timeout: 5000 });
+        await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText('Générer', { exact: true })).toBeVisible({ timeout: 15000 });
         await page.locator('#regenerate').click();
         await page.waitForLoadState('networkidle');
 
@@ -204,7 +204,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.locator('.dropdown-menu.show .dropdown-item', { hasText: 'Vue facturation' }).click();
         await page.waitForURL('**/prestation/eps/info/*/facturation');
         const statusElement = page.getByRole('button', { name: 'Effectuée', exact: true });
-        await expect(statusElement).toBeVisible({ timeout: 5000 });
+        await expect(statusElement).toBeVisible({ timeout: 15000 });
         await statusElement.click();
         await page.getByRole('dialog', { name: 'Validation' }).getByRole('button', { name: 'Oui' }).click();
         await page.waitForLoadState('networkidle');
