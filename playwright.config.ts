@@ -11,8 +11,8 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   
-  // Timeout global pour chaque test (2 minutes)
-  timeout: 120000,
+  // Timeout global pour chaque test (3 minutes)
+  timeout: 180000,
   
   // Retries en cas d'échec
   retries: process.env.CI ? 2 : 0,

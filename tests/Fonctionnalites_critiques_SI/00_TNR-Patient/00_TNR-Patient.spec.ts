@@ -1,13 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { fakerFR_SN as faker } from '@faker-js/faker';
-import {
-    login,
-    navigateToPatientsList,
-    getFirstPatientFromAPIWithClearSearch,
-    openSearchPanel,
-    searchAndVerify,
-    searchByFirstAndLastName
-} from '../utils/patient-helpers';
+import { getFirstPatientFromAPIWithClearSearch, login, navigateToPatientsList, openSearchPanel, searchAndVerify } from '../../Patrimoine_Test_SI_Medical/utils/patient-helpers';
 
 // test.setTimeout(300000); // Augmenter le timeout global à 5 minutes
 test('TNR-Patient', async ({ page }) => {
@@ -304,4 +297,5 @@ test('TNR-Patient', async ({ page }) => {
         await searchAndVerify(page, 'Référence', referencePatient, true);
     });
 });
+
 

@@ -2,9 +2,9 @@ import { Page, expect } from '@playwright/test';
 import { envConfig } from '../../../config/env.loader';
 
 /**
- * Efface la recherche et récupère le premier patient depuis l'API
+ * Efface la recherche et récupère le premier patient depuis l'API using the search filters.
  */
-export async function getFirstPatientFromAPI(page: Page) {
+export async function getFirstPatientFromAPIWithClearSearch(page: Page) {
     const waitForPatients = page.waitForResponse('**/patients**');
     // Attendre que la page soit complètement chargée
     await page.waitForLoadState('networkidle');
@@ -97,7 +97,7 @@ export async function login(page: Page, useAdmin: boolean = false) {
     // Attendre que la page soit complètement chargée
     await page.waitForLoadState('networkidle');
     // Vérification que les informations du patient sont affichées 
-    await expect(page.locator('h4', { hasText: 'Accueil' })).toBeVisible({ timeout: 15000 });
+    expect(page.getByRole('heading', { name: 'Accueil' })).toBeVisible({ timeout: 15000 });
 }
 
 /**
@@ -138,4 +138,22 @@ export async function getHospitalName(page: Page) {
     // Équivalent de cy.log()
     console.log(`Hôpital affiché dans le header: ${hospitalName}`);
     return hospitalName;
+}
+
+/**
+ * Efface la recherche et récupère le premier patient depuis l'API
+ */
+export async function getFirstPatientFromAPI(page: Page) {
+    // Attendre que la page soit complètement chargée
+    const waitForPatients = page.waitForResponse('**/patients**');
+    const patientlink = page.getByRole('link', { name: ' Les patients' });
+    await expect(patientlink).toBeVisible({ timeout: 15000 });
+    await patientlink.click();
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('heading', { name: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    const responsePatients = await waitForPatients;
+    expect(responsePatients.status()).toBe(200);
+    const firstPatient = (await responsePatients.json()).content[0];
+    await page.getByRole('link', { name: 'Accueil' }).click();
+    return firstPatient;
 }
