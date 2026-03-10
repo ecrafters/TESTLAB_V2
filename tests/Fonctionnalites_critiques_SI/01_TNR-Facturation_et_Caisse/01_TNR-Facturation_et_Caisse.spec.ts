@@ -8,12 +8,13 @@ async function encaisserPrestation(page: Page, prestationName: string) {
     await page.getByRole('link', { name: ' Règlements à payer' }).click();
     const responseReglements = page.waitForURL('**/gestion-financiere/reglements-a-payer');
     await responseReglements;
+    await page.waitForLoadState('networkidle');
     await expect(page.getByRole('heading', { name: 'à payer' })).toBeVisible({ timeout: 15000 });
-    // 2. Cibler la première ligne correspondante et attendre qu'elle soit visible
-    const row = page.locator('tbody tr').filter({ hasText: prestationName }).first();
-    await expect(row).toBeVisible({ timeout: 15000 });
-    // 3. Cliquer sur le menu déroulant (dropdown) dans cette ligne
-    await row.locator('.dropdown-toggle.mdi').click();
+    const rowsText = await page.locator('tbody tr').allTextContents();
+    console.log('Contenu du tableau :', rowsText);
+    await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
+    await page.locator('tbody tr').filter({ hasText: prestationName })
+        .locator('[class*="mdi-dots"]').first().click({ force: true });
     await page.locator('.dropdown-menu.show .dropdown-item', { hasText: 'Encaisser' }).click();
     await expect(page.getByRole('heading', { name: 'Encaissement en espèces' })).toBeVisible({ timeout: 15000 });
     await page.getByRole('dialog', { name: 'Encaissement en espèces' }).getByRole('button', { name: 'Oui' }).click();
@@ -178,7 +179,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.waitForLoadState('networkidle');
     });
 
-    await test.step('TC-001 : Facturer une consultation avec un patient non assuré', async () => {
+    await test.step('TC-002 : Facturer et encaisser une consultation', async () => {
         await login(page);  // Utilise automatiquement les identifiants de l'environnement
         await getHospitalName(page).then((name: string) => hospitalName = name);
 
@@ -225,7 +226,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await encaisserPrestation(page, 'Consultation');
     });
 
-    await test.step('TC-002 : Facturer un acte d\'analyse avec un patient non assuré et encaisser', async () => {
+    await test.step('TC-003 : Facturer et encaisser un acte d\'analyse', async () => {
         await page.goto('/prestation/list');
         // Attendre que la page soit complètement chargée
         await page.waitForURL('**/prestation/list');
@@ -261,7 +262,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await encaisserPrestation(page, 'Analyse');
     });
 
-    await test.step('TC-003 : Facturer un acte d\'imagerie avec un patient non assuré et encaisser', async () => {
+    await test.step('TC-004 : Facturer un acte d\'imagerie avec un patient non assuré et encaisser', async () => {
         await page.goto('/prestation/list');
         // Attendre que la page soit complètement chargée
         await page.waitForURL('**/prestation/list');

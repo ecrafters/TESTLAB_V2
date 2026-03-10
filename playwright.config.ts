@@ -30,6 +30,8 @@ export default defineConfig({
   },
   
   use: {
+    viewport: { width: 1920, height: 1080 },
+
     baseURL: envConfig.baseUrl,
     // headless: !!process.env.CI, // headless en CI, avec fenêtre en local
     
