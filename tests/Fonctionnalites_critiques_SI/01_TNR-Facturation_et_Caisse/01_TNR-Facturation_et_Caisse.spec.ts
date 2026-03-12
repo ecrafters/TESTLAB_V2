@@ -262,7 +262,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await encaisserPrestation(page, 'Analyse');
     });
 
-    await test.step('TC-004 : Facturer un acte d\'imagerie avec un patient non assuré et encaisser', async () => {
+    await test.step('TC-004 : Facturer et encaisser un acte d\'imagerie', async () => {
         await page.goto('/prestation/list');
         // Attendre que la page soit complètement chargée
         await page.waitForURL('**/prestation/list');
