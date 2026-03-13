@@ -146,7 +146,7 @@ export async function getHospitalName(page: Page) {
 export async function getFirstPatientFromAPI(page: Page) {
     // Attendre que la page soit complètement chargée
     const waitForPatients = page.waitForResponse('**/patients**');
-    const patientlink = page.getByRole('link', { name: ' Les patients' });
+    const patientlink = page.locator('#side-menu').getByText('Les patients');
     await expect(patientlink).toBeVisible({ timeout: 15000 });
     await patientlink.click();
     await page.waitForLoadState('networkidle');

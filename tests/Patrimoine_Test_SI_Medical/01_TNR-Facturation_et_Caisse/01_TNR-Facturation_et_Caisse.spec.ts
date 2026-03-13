@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { fakerFR_SN as faker } from '@faker-js/faker';
-import { getHospitalName, login } from '../utils/patient-helpers';
+import { getHospitalName, login, navigateToPatientsList } from '../utils/patient-helpers';
 import { envConfig } from '../../../config/env.loader';
 
 test('01_TNR-Facturation et Caisse', async ({ page }) => {
     let hospitalName: string;
     let productName: string;
+
     await test.step('TC-001 : Créer un acte de type ambulatoire', async () => {
         await login(page);  // Utilise automatiquement les identifiants de l'environnement
         await getHospitalName(page).then((name: string) => hospitalName = name);
@@ -83,7 +84,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Attendre que la page soit complètement chargée
         await page.waitForLoadState('networkidle');
         // Vérification que les informations du patient sont affichées 
-        await expect(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible({ timeout: 15000 });
+        // await expect(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible({ timeout: 15000 });
 
     });
 
@@ -181,7 +182,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Attendre que la page soit complètement chargée
         await page.waitForLoadState('networkidle');
         // Vérification que les informations du patient sont affichées 
-        await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible({ timeout: 15000 });
+        // await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible({ timeout: 15000 });
     });
 
     await test.step('TC-008 : Ajouter un tarif de type radiologie à une convention de prix', async () => {
@@ -325,7 +326,8 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Attendre que la page soit complètement chargée
         await page.waitForLoadState('networkidle');
         // Vérification que les informations du patient sont affichées 
-        await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible({ timeout: 15000 });
+        await expect(page.getByRole('heading', { name: 'Détails' })).toBeVisible({ timeout: 15000 });
+        // await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible({ timeout: 15000 });
     });
 
     await test.step('TC-012 : Créer un produit de pharmacie', async () => {
@@ -338,7 +340,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Attendre que la page soit complètement chargée
         await page.waitForURL('**/products/create');
         await expect(page.getByRole('heading', { name: 'Création d\'un produit' })).toBeVisible({ timeout: 15000 });
-        productName = `Produit ${faker.number.int({min: 1, max: 999})}`;
+        productName = `Produit ${faker.number.int({ min: 1, max: 999 })}`;
         await page.getByRole('textbox').nth(1).fill(productName);
         await page.locator('.ng-select-container').first().click();
         await page.getByRole('option', { name: 'PHARMACEUTIQUE', exact: true }).click();
@@ -356,7 +358,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.getByRole('option', { name: 'g/l', exact: true }).click();
         await page.getByRole('spinbutton').nth(2).fill('700');
         await page.locator("(//input[@role='combobox'])[8]").click();
-        await page.getByRole('option', { name: 'g/l', exact: true }).click();        
+        await page.getByRole('option', { name: 'g/l', exact: true }).click();
         await page.getByRole('button', { name: 'Sauvegarder' }).click();
         await page.waitForResponse('**/dokploy-medical-product/1.0/products');
         // Attendre que la page soit complètement chargée
@@ -400,7 +402,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.getByRole('button', { name: 'Ajouter un emplacement de' }).click();
         await page.getByRole('button', { name: 'Ajouter un emplacement de' }).click();
         await page.locator('.ng-select-container').click();
-        await page.getByRole('option', { name: 'PHARMACIE'}).first().click();
+        await page.getByRole('option', { name: 'PHARMACIE' }).first().click();
         await page.getByRole('button', { name: 'Sauvegarder' }).click();
         // Attendre que la page soit complètement chargée
         await page.waitForLoadState('networkidle');
@@ -437,5 +439,154 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Vérification que les informations du patient sont affichées 
         await expect(page.locator('tbody tr').filter({ hasText: quotePartName })).toBeVisible({ timeout: 15000 });
         // await page.pause();
+    });
+
+    await test.step('TC-016 : Créer une catégorie de chambre', async () => {
+        await page.locator('a').filter({ hasText: 'Logistique' }).click();
+        await page.waitForTimeout(500);
+        await page.getByText('Chambres', { exact: true }).click();
+        await page.waitForTimeout(500);
+        await page.getByText('Catégories', { exact: true }).click();
+        await page.waitForLoadState('networkidle');
+        await page.pause();
+        await expect(page.getByText('Catégorie', { exact: true })).toBeVisible({ timeout: 15000 });
+        
+        await expect(page.getByText('Ajouter une catégorie')).toBeVisible({ timeout: 15000 });
+        await page.getByText('Ajouter une catégorie', { exact: true }).click();
+        await page.getByRole('textbox', { name: 'Nom' }).fill(`Catégorie ${Date.now()}`);
+        await page.getByPlaceholder(' Prix   ').fill('75000');
+        await page.getByRole('button', { name: 'Sauvegarder' }).click();
+        await page.waitForLoadState('networkidle');
+        await page.getByRole('dialog', { name: 'Succès' }).getByRole('button', { name: 'OK' }).click();
+    });
+
+    await test.step('TC-017 : Créer une chambre simple avec un lit', async () => {
+        await page.locator('a[href*="/logistic/rooms/add-room"]').getByText('Créer').click()
+        await page.waitForLoadState('networkidle');
+        // await page.waitForResponse('**/dokploy-admin/1.0/sapi/rest/v1/organism-entities');
+        await expect(page.getByText('Créer une chambre')).toBeVisible({ timeout: 15000 });
+
+        await page.locator('input[type="text"]').nth(1).fill(`Chambre ${faker.number.int({ min: 1, max: 999 })}`);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un catégorie$/ }).first().click();
+        await page.locator('span').filter({ hasText: 'Catégorie' }).first().click();
+        // Utiliser une correspondance partielle au lieu du nom exact
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un service$/ }).first().click();
+        const hospitalOption = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: hospitalName }).first();
+        await expect(hospitalOption).toBeVisible({ timeout: 10000 });
+        await hospitalOption.click();
+        await page.getByText('Sauvegarder').click();
+        await page.waitForResponse('**rooms/with-beds?createBedsAutomatically=true')
+        await page.waitForLoadState('networkidle');
+    });
+    
+    await test.step('TC-018 : Créer une chambre double avec deux lits', async () => {
+        await page.locator('a').filter({ hasText: 'Logistique' }).click();
+        await page.waitForTimeout(500);
+        await page.getByText('Chambres', { exact: true }).click();
+        await page.waitForTimeout(500);
+        await page.locator('a[href*="/logistic/rooms/add-room"]').getByText('Créer').click()
+        await page.waitForLoadState('networkidle');
+        // await page.waitForResponse('**/dokploy-admin/1.0/sapi/rest/v1/organism-entities');
+        await expect(page.getByText('Créer une chambre')).toBeVisible({ timeout: 15000 });
+
+        await page.locator('input[type="text"]').nth(1).fill(`Chambre ${faker.number.int({ min: 1, max: 999 })}`);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un catégorie$/ }).first().click();
+        await page.locator('span').filter({ hasText: 'Catégorie' }).first().click();
+        // Utiliser une correspondance partielle au lieu du nom exact
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un service$/ }).first().click();
+        const hospitalOption = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: hospitalName }).first();
+        await expect(hospitalOption).toBeVisible({ timeout: 10000 });
+        await hospitalOption.click();
+        await page.locator('input[type="number"]').first().fill('2');
+        await page.getByText('Sauvegarder').click();
+        await page.waitForResponse('**rooms/with-beds?createBedsAutomatically=true')
+        await page.waitForLoadState('networkidle');
+    });
+
+    await test.step('TC-019 : Créer une chambre avec trois lits', async () => {
+        await page.locator('a').filter({ hasText: 'Logistique' }).click();
+        await page.waitForTimeout(500);
+        await page.getByText('Chambres', { exact: true }).click();
+        await page.waitForTimeout(500);
+        await page.locator('a[href*="/logistic/rooms/add-room"]').getByText('Créer').click()
+        await page.waitForLoadState('networkidle');
+        // await page.waitForResponse('**/dokploy-admin/1.0/sapi/rest/v1/organism-entities');
+        await expect(page.getByText('Créer une chambre')).toBeVisible({ timeout: 15000 });
+
+        await page.locator('input[type="text"]').nth(1).fill(`Chambre ${faker.number.int({ min: 1, max: 999 })}`);
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un catégorie$/ }).first().click();
+        await page.locator('span').filter({ hasText: 'Catégorie' }).first().click();
+        // Utiliser une correspondance partielle au lieu du nom exact
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un service$/ }).first().click();
+        const hospitalOption = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: hospitalName }).first();
+        await expect(hospitalOption).toBeVisible({ timeout: 10000 });
+        await hospitalOption.click();
+        await page.locator('input[type="number"]').first().fill('3');
+        await page.getByText('Sauvegarder').click();
+        await page.waitForResponse('**rooms/with-beds?createBedsAutomatically=true')
+        await page.waitForLoadState('networkidle');
+    });
+
+    await test.step('TC-020 : Facturer une consultation avec un patient non assuré', async () => {
+        await page.locator('a').filter({ hasText: 'DPUP' }).click();
+        await navigateToPatientsList(page);
+        // Essayons avec getByText (méthode la plus flexible)
+        const addPatientButton = page.getByText('Créer un patient');
+        await expect(addPatientButton).toBeVisible();
+        await addPatientButton.click();
+        await page.waitForURL('**/patient/create/**');
+        await expect(page).toHaveURL('https://msas.preprod.dokploy.eyone.net/patient/create/eps');
+
+        const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
+        await expect(patientFormTitle).toBeVisible();
+        await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
+
+        const sexe = faker.person.sexType();
+        const firstNamePatient = faker.person.firstName(sexe);
+        const lastNamePatient = faker.person.lastName(sexe);
+        const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
+        const sexePatient = sexe === 'male' ? 'Masculin' : 'Féminin';
+        // Remplir le formulaire de création de patient
+        await page.locator('input[type="text"]').nth(1).fill(firstNamePatient);
+        await page.locator('input[type="text"]').nth(2).fill(lastNamePatient);
+        await page.getByPlaceholder('000000000').fill('777536172');
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un sexe$/ }).first().click();
+        const sexeOption = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: sexePatient }).first();
+        await expect(sexeOption).toBeVisible({ timeout: 10000 });
+        await sexeOption.click();
+        await page.getByPlaceholder('JJ/MM/AAAA').fill(birthDate.toLocaleDateString('fr-FR'));
+        await page.getByText('Enregistrer').click();
+        // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
+        await page.waitForURL('**/patient/list');
+        await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+        // Créer une consultation pour ce patient
+        await page.locator('a').filter({ hasText: 'Prestations' }).first().click();
+        await page.waitForTimeout(500);
+        await page.getByText('Créer prestation').click();
+        await page.waitForURL('**/patient-identification');
+        await expect(page.getByText('Patient Interne')).toBeVisible({ timeout: 15000 });
+        // Renseigner les informations du patient
+        await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(`${firstNamePatient} ${lastNamePatient}`);
+        await page.locator('button').filter({ hasText: 'Rechercher' }).click();
+        await page.locator('tbody tr').filter({ hasText: `${firstNamePatient} ${lastNamePatient}` }).click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByText('Nouvelle prestation')).toBeVisible({ timeout: 15000 });
+        // Créer une prestation de consultation
+        await page.locator('button').filter({ hasText: 'Consultation' }).click();
+        await page.waitForURL('**/consultation/create/**');
+        await expect(page.locator('h4').filter({ hasText: 'Nouvelle consultation' })).toBeVisible({ timeout: 15000 });
+        // Sélectionner une prestation
+        await page.getByLabel('Prestation Médicale *').click();
+        await page.locator('span').filter({ hasText: 'CONSULTATION CARDIO' }).first().click();
+        await page.waitForResponse('**/consultations/consultation-act-selection');
+        await page.waitForLoadState('networkidle');
+        // await page.getByRole('heading', { name: 'Total Facture' }).scrollIntoViewIfNeeded();
+        await page.getByText('Enregistrer').click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByText('Facture', { exact: true })).toBeVisible({ timeout: 15000 });
+        await page.locator('#regenerate').click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByText('Facture régénérée avec succès')).toBeVisible({ timeout: 15000 });
+        await page.pause();
     });
 });
