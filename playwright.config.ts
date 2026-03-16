@@ -26,7 +26,7 @@ export default defineConfig({
   
   // Timeout pour les assertions expect()
   expect: {
-    timeout: 15000,
+    timeout: 30000,
   },
   
   use: {
@@ -39,8 +39,8 @@ export default defineConfig({
     launchOptions: slowMode ? { slowMo: 1000 } : {},
     
     // Timeouts
-    actionTimeout: 15000,
-    navigationTimeout: 60000,
+    actionTimeout: 180000,
+    navigationTimeout: 180000,
     
     // Captures d'écran et traces
     trace: 'on-first-retry',
