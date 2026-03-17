@@ -1,5 +1,6 @@
 import { Page, expect } from '@playwright/test';
 import { envConfig } from '../../../config/env.loader';
+import { fakerFR_SN as faker } from '@faker-js/faker';
 
 /**
  * Efface la recherche et récupère le premier patient depuis l'API using the search filters.
@@ -154,6 +155,191 @@ export async function getFirstPatientFromAPI(page: Page) {
     const responsePatients = await waitForPatients;
     expect(responsePatients.status()).toBe(200);
     const firstPatient = (await responsePatients.json()).content[0];
-    await page.getByRole('link', { name: 'Accueil' }).click();
+    await page.locator('a').filter({ hasText: 'DPUP' }).click();
     return firstPatient;
+}
+/**
+ * Crée un patient avec une prise en charge et un assureur
+ */
+export async function createPatientWithInsurer(page: Page) {
+    // Vérification que les informations du patient sont affichées
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+
+    // Essayons avec getByText (méthode la plus flexible)
+    const addPatientButton = page.getByText('Créer un patient');
+    await expect(addPatientButton).toBeVisible();
+    await addPatientButton.click();
+    await page.waitForURL('**/patient/create/**');
+
+    const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
+    await expect(patientFormTitle).toBeVisible();
+    await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
+
+    const sexe = faker.person.sexType();
+    const firstNamePatient = faker.person.firstName(sexe);
+    const lastNamePatient = faker.person.lastName(sexe);
+    const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
+    const sexePatient = sexe === 'male' ? 'Masculin' : 'Féminin';
+    // Remplir le formulaire de création de patient
+    await page.locator('input[type="text"]').nth(1).fill(firstNamePatient);
+    await page.locator('input[type="text"]').nth(2).fill(lastNamePatient);
+    await page.getByPlaceholder('000000000').fill('777536172');
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner un sexe$/ }).first().click();
+    const sexeOption = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: sexePatient }).first();
+    await expect(sexeOption).toBeVisible({ timeout: 10000 });
+    await sexeOption.click();
+    await page.getByRole('textbox', { name: 'JJ/MM/AAAA' }).fill(birthDate.toLocaleDateString('fr-FR'));
+    await page.getByRole('textbox').nth(5).fill("Keur Massar");
+    await page.locator('.row.mt-4 > div > .form-control').first().fill("Dakar");
+    const emailPatient = faker.internet.email().toLowerCase();
+    await page.locator('#email').fill(emailPatient);
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner un statut matrimonial$/ }).first().click();
+    await page.getByRole('option', { name: 'CELIBATAIRE' }).click();
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner un groupe sanguin$/ }).first().click();
+    await page.getByRole('option', { name: 'A+' }).click();
+    await page.locator('div:nth-child(8) > .col-md-6 > .form-control').fill(faker.number.int({ min: 1755199000000, max: 9999999999999 }).toString());
+
+    // Activer la prise en charge
+    await page.getByRole('switch').nth(1).click();
+    await expect(page.getByText('Assureur')).toBeVisible({ timeout: 15000 });
+    // Sélectionner l'assureur "IPM EYONE"
+    await page.getByRole('combobox', { name: 'Nom de l\'assureur' }).fill('IPM');
+    await page.locator('span').filter({ hasText: 'IPM EYONE' }).first().click();
+    // la date de début de validité de l'assurance
+    const startDate = faker.date.recent();
+    await page.locator('input[name="ddv"]').fill(startDate.toLocaleDateString('fr-FR'));
+    // la date de fin de validité de l'assurance qui est postérieure à la date de début
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 1); // 1 mois après la date de début
+    await page.locator('input[name="dfv"]').fill(endDate.toLocaleDateString('fr-FR'));
+    await page.locator('.row.mt-3 > div > .d-flex > .col-md-12 > .form-control').first().fill(`C${faker.number.int({ min: 1000000, max: 9999999 })}`);
+    await page.locator('.row.mt-3 > div:nth-child(2) > .d-flex > .col-md-12 > .form-control').first().fill(faker.string.alphanumeric({ length: 10 }).toUpperCase());
+    await page.locator('div:nth-child(4) > .col-md-6 > .d-flex > .col-md-12 > .form-control').fill(faker.string.alphanumeric({ length: 8 }).toUpperCase());
+    await page.getByRole('spinbutton').first().fill('80');
+    await page.getByRole('spinbutton').nth(1).fill('180000');
+
+    // Identité du patient - Informations Complémentaires
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).first().click();
+    await page.getByRole('option', { name: 'Master' }).click();
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).nth(1).click();
+    await page.getByRole('option', { name: 'INGENIEUR' }).click();
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner une nationalité$/ }).first().click();
+    await page.getByRole('option', { name: 'SENEGAL' }).first().click();
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner une ethnie$/ }).first().click();
+    await page.getByRole('option', { name: 'WOLOF' }).click();
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    // Vérification du bouton de confirmation de la création du patient par une condition
+    const checkLikenessPatient = page.waitForResponse('**/patients/check-likeness-patient');
+    const response = await checkLikenessPatient;
+    expect(response.status()).toBe(200);
+    const responseBody = await response.json();
+    if (responseBody.length > 0) {
+        await page.getByRole('button', { name: 'OUI' }).click();
+    }
+    // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
+    await page.waitForURL('**/patient/list');
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+}
+
+/**
+ * Crée un patient avec une double prise en charge (2 assureurs)
+ */
+export async function createPatientWithDoubleInsurer(page: Page) {
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+
+    // Essayons avec getByText (méthode la plus flexible)
+    const addPatientButton = page.getByText('Créer un patient');
+    await expect(addPatientButton).toBeVisible();
+    await addPatientButton.click();
+    await page.waitForURL('**/patient/create/**');
+
+    const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
+    await expect(patientFormTitle).toBeVisible();
+    await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
+
+    const sexe = faker.person.sexType();
+    const firstNamePatient = faker.person.firstName(sexe);
+    const lastNamePatient = faker.person.lastName(sexe);
+    const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
+    const sexePatient = sexe === 'male' ? 'Masculin' : 'Féminin';
+    // Remplir le formulaire de création de patient
+    await page.locator('input[type="text"]').nth(1).fill(firstNamePatient);
+    await page.locator('input[type="text"]').nth(2).fill(lastNamePatient);
+    await page.getByRole('textbox', { name: '000000000' }).fill(`77${faker.number.int({ min: 1000000, max: 9999999 })}`);
+    // Sélectionner le sexe du patient
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner un sexe$/ }).first().click();
+    await page.getByRole('option', { name: sexePatient }).click();
+    await page.getByRole('textbox', { name: 'JJ/MM/AAAA' }).fill(birthDate.toLocaleDateString('fr-FR'));
+    await page.getByRole('textbox').nth(5).fill("Keur Massar");
+    await page.locator('.row.mt-4 > div > .form-control').first().fill("Dakar");
+    const emailPatient = faker.internet.email().toLowerCase();
+    await page.locator('#email').fill(emailPatient);
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner un statut matrimonial$/ }).first().click();
+    await page.getByRole('option', { name: 'CELIBATAIRE' }).click();
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner un groupe sanguin$/ }).first().click();
+    await page.getByRole('option', { name: 'A+' }).click();
+    await page.locator('div:nth-child(8) > .col-md-6 > .form-control').fill(faker.number.int({ min: 1755199000000, max: 9999999999999 }).toString());
+
+    // Activer la prise en charge
+    await page.getByRole('switch').nth(1).click();
+    await expect(page.getByText('Assureur')).toBeVisible({ timeout: 15000 });
+    // Sélectionner l'assureur "IPM EYONE"
+    await page.getByRole('combobox', { name: 'Nom de l\'assureur' }).fill('IPM');
+    await page.locator('span').filter({ hasText: 'IPM EYONE' }).first().click();
+    // la date de début de validité de l'assurance
+    const startDate = faker.date.recent();
+    await page.locator('input[name="ddv"]').fill(startDate.toLocaleDateString('fr-FR'));
+    // la date de fin de validité de l'assurance qui est postérieure à la date de début
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 1); // 1 mois après la date de début
+    await page.locator('input[name="dfv"]').fill(endDate.toLocaleDateString('fr-FR'));
+    await page.locator('.row.mt-3 > div > .d-flex > .col-md-12 > .form-control').first().fill(`C${faker.number.int({ min: 1000000, max: 9999999 })}`);
+    await page.locator('.row.mt-3 > div:nth-child(2) > .d-flex > .col-md-12 > .form-control').first().fill(faker.string.alphanumeric({ length: 10 }).toUpperCase());
+    await page.locator('div:nth-child(4) > .col-md-6 > .d-flex > .col-md-12 > .form-control').fill(faker.string.alphanumeric({ length: 8 }).toUpperCase());
+    await page.getByRole('spinbutton').first().fill('80');
+    await page.getByRole('spinbutton').nth(1).fill('180000');
+
+    // Identité du patient - Informations Complémentaires
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).first().click();
+    await page.getByRole('option', { name: 'Master' }).click();
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).nth(1).click();
+    await page.getByRole('option', { name: 'INGENIEUR' }).click();
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner une nationalité$/ }).first().click();
+    await page.getByRole('option', { name: 'SENEGAL' }).first().click();
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner une ethnie$/ }).first().click();
+    await page.getByRole('option', { name: 'WOLOF' }).click();
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+
+    await page.locator('.dropdown-toggle.mdi').first().click();
+    await page.locator('.dropdown-menu.dropdown-menu-right.show > a').first().click();
+    await page.waitForURL('**/patient/**');
+    await expect(page.getByRole('tab', { name: 'Prise en charge' })).toBeVisible({ timeout: 15000 });
+    await page.getByRole('tab', { name: 'Prise en charge' }).click();
+    await expect(page.getByRole('button', { name: 'Ajouter une prise en charge' })).toBeVisible({ timeout: 15000 });
+    await page.getByRole('button', { name: 'Ajouter une prise en charge' }).click();
+    await expect(page.getByText('Assureur *')).toBeVisible({ timeout: 15000 });
+    // Sélectionner l'assureur "IPM EYONE"
+    await page.getByRole('combobox', { name: 'Nom de l\'assureur' }).fill('IPM');
+    await page.locator('span').filter({ hasText: 'IPM EYONE' }).first().click();
+    // la date de début de validité de l'assurance
+    const startDateInsurer = faker.date.recent();
+    await page.getByRole('dialog').locator('input[name="dd"]').fill(startDateInsurer.toLocaleDateString('fr-FR'));
+    // la date de fin de validité de l'assurance qui est postérieure à la date de début
+    const endDateInsurer = new Date(startDateInsurer);
+    endDateInsurer.setMonth(endDateInsurer.getMonth() + 1); // 1 mois après la date de début
+    await page.getByRole('dialog').locator('input[name="df"]').fill(endDateInsurer.toLocaleDateString('fr-FR'));
+    await page.getByRole('dialog').locator('#numero_assure').fill(`C${faker.number.int({ min: 1000000, max: 9999999 })}`);
+    await page.getByRole('dialog').locator('#numero_carte').fill(faker.string.alphanumeric({ length: 10 }).toUpperCase());
+    await page.getByRole('searchbox', { name: 'Matricule' }).fill(faker.string.alphanumeric({ length: 8 }).toUpperCase());
+    await page.getByRole('dialog').locator('#pourcentage').fill('90');
+    await page.getByRole('dialog').locator('#plafond').fill('100000');
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByText('100000')).toBeVisible({ timeout: 15000 });
+
+    // Navigation vers la liste des patients
+    await page.goBack();
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
 }

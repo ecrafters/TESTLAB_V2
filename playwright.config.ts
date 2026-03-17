@@ -39,11 +39,11 @@ export default defineConfig({
     launchOptions: slowMode ? { slowMo: 1000 } : {},
     
     // Timeouts
-    actionTimeout: 180000,
-    navigationTimeout: 180000,
+    actionTimeout: 120000,
+    navigationTimeout: 120000,
     
     // Captures d'écran et traces
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },

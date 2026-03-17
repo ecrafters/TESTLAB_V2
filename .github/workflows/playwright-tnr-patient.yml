@@ -190,3 +190,5 @@ jobs:
             playwright-report
             test-results
           if-no-files-found: ignore
+          retention-days: 3 # Garde le rapport seulement 3 jours
+

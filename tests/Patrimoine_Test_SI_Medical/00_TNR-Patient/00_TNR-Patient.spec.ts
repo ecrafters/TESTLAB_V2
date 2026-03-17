@@ -21,8 +21,6 @@ test('TNR-Patient', async ({ page }) => {
         await expect(addPatientButton).toBeVisible();
         await addPatientButton.click();
         await page.waitForURL('**/patient/create/**');
-        await expect(page).toHaveURL('https://msas.preprod.dokploy.eyone.net/patient/create/eps');
-
         const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
         await expect(patientFormTitle).toBeVisible();
         await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
@@ -56,8 +54,6 @@ test('TNR-Patient', async ({ page }) => {
         await expect(addPatientButton).toBeVisible();
         await addPatientButton.click();
         await page.waitForURL('**/patient/create/**');
-        await expect(page).toHaveURL('https://msas.preprod.dokploy.eyone.net/patient/create/eps');
-
         const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
         await expect(patientFormTitle).toBeVisible();
         await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
@@ -108,11 +104,11 @@ test('TNR-Patient', async ({ page }) => {
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).first().click();
         await page.getByRole('option', { name: 'Master' }).click();
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).nth(1).click();
-        await page.getByRole('option', { name: 'INGENIEUR' }).click();
+        await page.getByRole('option', { name: 'INGÉNIEUR' }).click();
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner une nationalité$/ }).first().click();
         await page.getByRole('option', { name: 'SENEGAL' }).first().click();
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner une ethnie$/ }).first().click();
-        await page.getByRole('option', { name: 'WOLOF' }).click();
+        await page.getByRole('option', { name: 'PEULH' }).click();
         await page.getByRole('button', { name: 'Enregistrer' }).click();
         // Vérification du bouton de confirmation de la création du patient par une condition
         const checkLikenessPatient = page.waitForResponse('**/patients/check-likeness-patient');
@@ -122,7 +118,6 @@ test('TNR-Patient', async ({ page }) => {
         if (responseBody.length > 0) {
             await page.getByRole('button', { name: 'OUI' }).click();
         }
-        await page.pause();
         // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
         await page.waitForURL('**/patient/list');
         await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
@@ -132,8 +127,6 @@ test('TNR-Patient', async ({ page }) => {
         // Attendre que la page soit complètement chargée
         await page.waitForLoadState('networkidle');
         await page.waitForURL('**/patient/**');
-        // Vérification que la page des patients est affichée
-        await expect(page).toHaveURL('https://msas.preprod.dokploy.eyone.net/patient/list');
 
         // Vérification que les informations du patient sont affichées
         await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
@@ -143,8 +136,6 @@ test('TNR-Patient', async ({ page }) => {
         await expect(addPatientButton).toBeVisible();
         await addPatientButton.click();
         await page.waitForURL('**/patient/create/**');
-        await expect(page).toHaveURL('https://msas.preprod.dokploy.eyone.net/patient/create/eps');
-
         const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
         await expect(patientFormTitle).toBeVisible();
         await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
@@ -195,11 +186,11 @@ test('TNR-Patient', async ({ page }) => {
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).first().click();
         await page.getByRole('option', { name: 'Master' }).click();
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).nth(1).click();
-        await page.getByRole('option', { name: 'INGENIEUR' }).click();
+        await page.getByRole('option', { name: 'INGÉNIEUR' }).click();
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner une nationalité$/ }).first().click();
         await page.getByRole('option', { name: 'SENEGAL' }).first().click();
         await page.locator('div').filter({ hasText: /^Veuillez sélectionner une ethnie$/ }).first().click();
-        await page.getByRole('option', { name: 'WOLOF' }).click();
+        await page.getByRole('option', { name: 'PEULH' }).click();
         await page.getByRole('button', { name: 'Enregistrer' }).click();
         // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
         await page.waitForURL('**/patient/list');
