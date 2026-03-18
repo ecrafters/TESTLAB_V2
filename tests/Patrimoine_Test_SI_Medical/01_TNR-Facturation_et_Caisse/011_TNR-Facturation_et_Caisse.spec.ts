@@ -104,17 +104,17 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
 async function createPrestationAmbulatoire(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
     await page.waitForURL('**/patient-identification');
-    await expect(page.getByText('Patient Interne')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Patient Interne')).toBeVisible();
     // Renseigner les informations du patient
     await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
     await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Nouvelle prestation')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Nouvelle prestation')).toBeVisible();
     // Créer une prestation d'ambulatoire
     await page.locator('button').filter({ hasText: 'Ambulatoire' }).click();
     await page.waitForURL('**/ambulatory/create/**');
-    await expect(page.locator('h4').filter({ hasText: 'Nouvel Ambulatoire' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4').filter({ hasText: 'Nouvel Ambulatoire' })).toBeVisible();
     // Sélectionner une prestation
     await page.getByRole('combobox', { name: 'Veuillez sélectionner un élé' }).click();
     await page.locator('span').filter({ hasText: 'ONDES MÉCANIQUES' }).first().click();
@@ -122,26 +122,26 @@ async function createPrestationAmbulatoire(page: Page, patientName: string) {
     await page.waitForLoadState('networkidle');
     await page.getByText('Enregistrer').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture', { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createPrestationImagerie(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
     await page.waitForURL('**/patient-identification');
-    await expect(page.getByText('Patient Interne')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Patient Interne')).toBeVisible();
     // Renseigner les informations du patient
     await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
     await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Nouvelle prestation')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Nouvelle prestation')).toBeVisible();
     // Créer une prestation d'imagerie
     await page.locator('button').filter({ hasText: 'Imagerie' }).click();
     await page.waitForURL('**/imaging/create/**');
-    await expect(page.locator('h4').filter({ hasText: 'NOUVELLE RADIOLOGIE/IMAGERIE' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4').filter({ hasText: 'NOUVELLE RADIOLOGIE/IMAGERIE' })).toBeVisible();
     // Sélectionner une prestation
     await page.getByRole('combobox', { name: 'Veuillez sélectionner un élé' }).click();
     await page.locator('span').filter({ hasText: 'RADIOGRAPHIE THORAX' }).first().click();
@@ -149,26 +149,26 @@ async function createPrestationImagerie(page: Page, patientName: string) {
     await page.waitForLoadState('networkidle');
     await page.getByText('Enregistrer').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createPrestationAnalyse(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
     await page.waitForURL('**/patient-identification');
-    await expect(page.getByText('Patient Interne')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Patient Interne')).toBeVisible();
     // Renseigner les informations du patient
     await page.getByRole('searchbox', { name: 'Tapez votre recherche' }).fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
     await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Nouvelle prestation')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Nouvelle prestation')).toBeVisible();
     // Créer une prestation d'analyse
     await page.locator('button').filter({ hasText: 'Analyse' }).click();
     await page.waitForURL('**/analysis/create/**');
-    await expect(page.locator('h4').filter({ hasText: 'Nouvelle analyse' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4').filter({ hasText: 'Nouvelle analyse' })).toBeVisible();
     // Sélectionner une prestation
     await page.getByRole('combobox', { name: 'Veuillez sélectionner un élé' }).click();
     await page.locator('span').filter({ hasText: 'ANALYSE URINE' }).first().click();
@@ -176,35 +176,35 @@ async function createPrestationAnalyse(page: Page, patientName: string) {
     await page.waitForLoadState('networkidle');
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture', { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createHospitalization(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
     await page.waitForURL('**/patient-identification');
-    await expect(page.getByText('Patient Interne')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Patient Interne')).toBeVisible();
     // Renseigner les informations du patient
     await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
     await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Nouvelle prestation')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Nouvelle prestation')).toBeVisible();
     // Créer une prestation d'hospitalisation
     await page.locator('button').filter({ hasText: 'Hospitalisation' }).click();
     await page.waitForURL('**/hospitalisation/create/**');
-    await expect(page.locator('h4').filter({ hasText: 'Nouvelle hospitalisation' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4').filter({ hasText: 'Nouvelle hospitalisation' })).toBeVisible();
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     await page.waitForLoadState('networkidle');
     // Ajouter une chambre à l'hospitalisation
     await page.getByRole('button', { name: ' Chambres' }).click();
     await page.waitForURL('**/prestation/eps/info/*/rooms');
-    await expect(page.getByRole('heading', { name: 'Liste des chambres' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Liste des chambres' })).toBeVisible();
     await page.getByRole('button', { name: ' Ajouter une chambre' }).click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: 'Nouvelle Chambre' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Nouvelle Chambre' })).toBeVisible();
     // la date de début de validité de l'assurance
     const startDate = faker.date.recent();
     await page.getByRole('textbox', { name: 'Date d\'entrée *' }).fill(startDate.toISOString().split('T')[0]);
@@ -234,10 +234,10 @@ async function createHospitalization(page: Page, patientName: string) {
 
     await page.getByRole('button', { name: 'Facturation' }).click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture', { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createPrestationConsultation(page: Page, patientName: string, doublePriseEnCharge: boolean = false) {
@@ -298,7 +298,7 @@ async function createPrestationPharmacy(page: Page, patientName: string) {
     await expect(page.locator('tbody tr').filter({ hasText: 'DOLIPRANE' })).toBeVisible();
     await page.getByText('Enregistrer').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
@@ -331,6 +331,6 @@ async function createPatient(page: Page) {
     await page.getByText('Enregistrer').click();
     // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
     await page.waitForURL('**/patient/list');
-    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible();
     return { firstNamePatient, lastNamePatient };
 }
