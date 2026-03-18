@@ -448,7 +448,6 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.waitForTimeout(500);
         await page.getByText('Catégories', { exact: true }).click();
         await page.waitForLoadState('networkidle');
-        await page.pause();
         await expect(page.getByText('Catégorie', { exact: true })).toBeVisible({ timeout: 15000 });
         
         await expect(page.getByText('Ajouter une catégorie')).toBeVisible({ timeout: 15000 });
@@ -587,6 +586,5 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await page.locator('#regenerate').click();
         await page.waitForLoadState('networkidle');
         await expect(page.getByText('Facture régénérée avec succès')).toBeVisible({ timeout: 15000 });
-        await page.pause();
     });
 });

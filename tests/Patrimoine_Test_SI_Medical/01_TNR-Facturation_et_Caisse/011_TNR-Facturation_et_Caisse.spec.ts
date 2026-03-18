@@ -111,7 +111,7 @@ async function createPrestationAmbulatoire(page: Page, patientName: string) {
     // Renseigner les informations du patient
     await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
-    await page.locator('tbody tr').filter({ hasText: patientName }).click();
+    await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Nouvelle prestation')).toBeVisible({ timeout: 15000 });
     // Créer une prestation d'ambulatoire
@@ -138,7 +138,7 @@ async function createPrestationImagerie(page: Page, patientName: string) {
     // Renseigner les informations du patient
     await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
-    await page.locator('tbody tr').filter({ hasText: patientName }).click();
+    await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Nouvelle prestation')).toBeVisible({ timeout: 15000 });
     // Créer une prestation d'imagerie
@@ -152,7 +152,7 @@ async function createPrestationImagerie(page: Page, patientName: string) {
     await page.waitForLoadState('networkidle');
     await page.getByText('Enregistrer').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture', { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible({ timeout: 15000 });
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Facture régénérée avec succès')).toBeVisible({ timeout: 15000 });
@@ -163,9 +163,9 @@ async function createPrestationAnalyse(page: Page, patientName: string) {
     await page.waitForURL('**/patient-identification');
     await expect(page.getByText('Patient Interne')).toBeVisible({ timeout: 15000 });
     // Renseigner les informations du patient
-    await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
+    await page.getByRole('searchbox', { name: 'Tapez votre recherche' }).fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
-    await page.locator('tbody tr').filter({ hasText: patientName }).click();
+    await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Nouvelle prestation')).toBeVisible({ timeout: 15000 });
     // Créer une prestation d'analyse
@@ -192,7 +192,7 @@ async function createHospitalization(page: Page, patientName: string) {
     // Renseigner les informations du patient
     await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
-    await page.locator('tbody tr').filter({ hasText: patientName }).click();
+    await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Nouvelle prestation')).toBeVisible({ timeout: 15000 });
     // Créer une prestation d'hospitalisation
@@ -252,7 +252,7 @@ async function createPrestationConsultation(page: Page, patientName: string, dou
     // Renseigner les informations du patient
     await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
-    await page.locator('tbody tr').filter({ hasText: patientName }).click();
+    await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Nouvelle prestation')).toBeVisible();
     // Créer une prestation de consultation
@@ -279,7 +279,7 @@ async function createPrestationPharmacy(page: Page, patientName: string) {
     // Renseigner les informations du patient
     await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
-    await page.locator('tbody tr').filter({ hasText: patientName }).click();
+    await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
     await page.waitForLoadState('networkidle');
     await expect(page.getByText('Nouvelle prestation')).toBeVisible();
     // Créer une prestation pharmacie
