@@ -10,14 +10,11 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Naviguer vers la section de paramétrage des actes
         await page.locator('#vertical-menu-btn').click();
         await navigateToPatientsList(page);
-        // On récupère le premier patient de la liste via l'API pour s'assurer qu'il existe
-        let patient = await getFirstPatientFromAPI(page);
-        if (!patient) {
-            throw new Error('Aucun patient trouvé via l\'API');
-        }
-        patientName = `${patient.firstName} ${patient.lastName}`;
+        // Essayons avec getByText (méthode la plus flexible)
+        const { firstNamePatient, lastNamePatient } = await createPatient(page);
+        patientName = `${firstNamePatient} ${lastNamePatient}`;
         console.log(`Patient sélectionné pour les tests de facturation : ${patientName}`);
-        await page.getByRole('link', { name: ' Prestations', exact: true }).click();
+        await page.locator('a').filter({ hasText: 'Prestations' }).first().click();
         await page.waitForLoadState('networkidle');
         await createHospitalization(page, patientName);
     });
@@ -307,3 +304,33 @@ async function createPrestationPharmacy(page: Page, patientName: string) {
     await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
+async function createPatient(page: Page) {
+    const addPatientButton = page.getByText('Créer un patient');
+    await expect(addPatientButton).toBeVisible();
+    await addPatientButton.click();
+    await page.waitForURL('**/patient/create/**');
+
+    const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
+    await expect(patientFormTitle).toBeVisible();
+    await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
+
+    const sexe = faker.person.sexType();
+    const firstNamePatient = faker.person.firstName(sexe);
+    const lastNamePatient = faker.person.lastName(sexe);
+    const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
+    const sexePatient = sexe === 'male' ? 'Masculin' : 'Féminin';
+    // Remplir le formulaire de création de patient
+    await page.locator('input[type="text"]').nth(1).fill(firstNamePatient);
+    await page.locator('input[type="text"]').nth(2).fill(lastNamePatient);
+    await page.getByPlaceholder('000000000').fill('777536172');
+    await page.locator('div').filter({ hasText: /^Veuillez sélectionner un sexe$/ }).first().click();
+    const sexeOption = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: sexePatient }).first();
+    await expect(sexeOption).toBeVisible({ timeout: 10000 });
+    await sexeOption.click();
+    await page.getByPlaceholder('JJ/MM/AAAA').fill(birthDate.toLocaleDateString('fr-FR'));
+    await page.getByText('Enregistrer').click();
+    // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
+    await page.waitForURL('**/patient/list');
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    return { firstNamePatient, lastNamePatient };
+}
