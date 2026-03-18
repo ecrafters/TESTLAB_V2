@@ -90,11 +90,30 @@ export async function login(page: Page, useAdmin: boolean = false) {
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-
+    // await page.pause(); // Permet de voir la page de login avant de remplir les champs
+    // MSAS
     await expect(page).toHaveTitle('Dossier Patient Unique Partagé');
     await page.getByRole('textbox', { name: 'Identifiant' }).fill(email);
     await page.getByRole('textbox', { name: 'Mot de passe' }).fill(password);
     await page.getByRole('button', { name: 'Connexion' }).click();
+
+    // PASSMOUSSO
+    // await expect(page).toHaveTitle('PASS SANTE MOUSSO');
+    // await page.locator('app-pass-mousso #email').fill(email);
+    // await page.locator('app-pass-mousso #password').fill(password);
+    // await page.getByRole('button', { name: 'Connexion' }).click();
+
+    // SIMEDICAL
+    // await expect(page).toHaveTitle('SI Médical');
+    // await page.getByRole('textbox', { name: 'Identifiant Identifiant Nom d' }).fill(email);
+    // await page.getByRole('textbox', { name: 'Mot de passe Mot de passe Mot' }).fill(password);
+    // await page.getByRole('button', { name: 'Se connecter' }).click();
+
+    // FAJ'MA
+    // await expect(page).toHaveTitle('FAJ\'MA');
+    // await page.locator('app-fajma #email').fill(email);
+    // await page.locator('app-fajma #password').fill(password);
+    // await page.getByRole('button', { name: 'Connexion' }).click();
     // Attendre que la page soit complètement chargée
     await page.waitForLoadState('networkidle');
     // Vérification que les informations du patient sont affichées 
@@ -146,16 +165,24 @@ export async function getHospitalName(page: Page) {
  */
 export async function getFirstPatientFromAPI(page: Page) {
     // Attendre que la page soit complètement chargée
-    const waitForPatients = page.waitForResponse('**/patients**');
+    await page.getByRole('link', { name: 'Créer' }).click();
+    await page.waitForLoadState('networkidle');
+    // const waitForPatients = page.waitForResponse('**/patients?offset=0&limit=10');
     const patientlink = page.locator('#side-menu').getByText('Les patients');
-    await expect(patientlink).toBeVisible({ timeout: 15000 });
-    await patientlink.click();
+    const [responsePatients] = await Promise.all([
+        page.waitForResponse('**/patients**', { timeout: 15000 }),
+        patientlink.click()
+    ]);
     await page.waitForLoadState('networkidle');
     await expect(page.getByRole('heading', { name: 'Les patients' })).toBeVisible({ timeout: 15000 });
-    const responsePatients = await waitForPatients;
+    // const responsePatients = await waitForPatients;
     expect(responsePatients.status()).toBe(200);
     const firstPatient = (await responsePatients.json()).content[0];
     await page.locator('a').filter({ hasText: 'DPUP' }).click();
+    // await page.getByRole('link', { name: 'Pass Santé Mousso' }).click();
+    // await page.getByRole('link', { name: 'SI Médical', exact: true }).click();
+    // await page.getByRole('link', { name: 'FAJ\'MA' }).click();
+
     return firstPatient;
 }
 /**
@@ -222,11 +249,11 @@ export async function createPatientWithInsurer(page: Page) {
     await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).first().click();
     await page.getByRole('option', { name: 'Master' }).click();
     await page.locator('div').filter({ hasText: /^Veuillez sélectionner une profession$/ }).nth(1).click();
-    await page.getByRole('option', { name: 'INGENIEUR' }).click();
+    await page.getByRole('option', { name: 'INGÉNIEUR' }).click();
     await page.locator('div').filter({ hasText: /^Veuillez sélectionner une nationalité$/ }).first().click();
     await page.getByRole('option', { name: 'SENEGAL' }).first().click();
     await page.locator('div').filter({ hasText: /^Veuillez sélectionner une ethnie$/ }).first().click();
-    await page.getByRole('option', { name: 'WOLOF' }).click();
+    await page.getByRole('option', { name: 'PEULH' }).click();
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     // Vérification du bouton de confirmation de la création du patient par une condition
     const checkLikenessPatient = page.waitForResponse('**/patients/check-likeness-patient');
