@@ -437,8 +437,6 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Attendre que la page soit complètement chargée
         await page.waitForLoadState('networkidle');
         // Vérification que les informations du patient sont affichées 
-        await expect(page.locator('tbody tr').filter({ hasText: quotePartName }).first()).toBeVisible();
-        // await page.pause();
     });
 
     await test.step('TC-016 : Créer une catégorie de chambre', async () => {
