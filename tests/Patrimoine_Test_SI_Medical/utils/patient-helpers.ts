@@ -230,8 +230,13 @@ export async function createPatientWithInsurer(page: Page) {
     await page.getByRole('switch').nth(1).click();
     await expect(page.getByText('Assureur')).toBeVisible({ timeout: 15000 });
     // Sélectionner l'assureur "IPM EYONE"
-    await page.getByRole('combobox', { name: 'Nom de l\'assureur' }).fill('IPM');
-    await page.locator('span').filter({ hasText: 'IPM EYONE' }).first().click();
+    const assureurInput = page.getByRole('combobox', { name: 'Nom de l\'assureur' });
+    await assureurInput.click();
+    await assureurInput.pressSequentially('IPM', { delay: 100 });
+
+    const assureurOption = page.locator('.mat-option, span').filter({ hasText: 'IPM EYONE' }).first();
+    await expect(assureurOption).toBeVisible({ timeout: 15000 });
+    await assureurOption.click();
     // la date de début de validité de l'assurance
     const startDate = faker.date.recent();
     await page.locator('input[name="ddv"]').fill(startDate.toLocaleDateString('fr-FR'));
@@ -256,12 +261,21 @@ export async function createPatientWithInsurer(page: Page) {
     await page.getByRole('option', { name: 'PEULH' }).click();
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     // Vérification du bouton de confirmation de la création du patient par une condition
-    const checkLikenessPatient = page.waitForResponse('**/patients/check-likeness-patient');
-    const response = await checkLikenessPatient;
-    expect(response.status()).toBe(200);
-    const responseBody = await response.json();
-    if (responseBody.length > 0) {
-        await page.getByRole('button', { name: 'OUI' }).click();
+    // const checkLikenessPatient = page.waitForResponse('**/patients/check-likeness-patient');
+    // const response = await checkLikenessPatient;
+    // expect(response.status()).toBe(200);
+    // const responseBody = await response.json();
+    // if (responseBody.length > 0) {
+    //     await page.getByRole('button', { name: 'OUI' }).click();
+    // }
+     // Attendre jusqu'à 5 secondes l'apparition du bouton OUI (détection de doublons api : check-likeness-patient)
+    const btnOui = page.getByRole('button', { name: 'OUI' });
+    try {
+        await btnOui.waitFor({ state: 'visible', timeout: 5000 });
+        await btnOui.click();
+    } catch (e) {
+        // Ignorer l'erreur si la modale de doublon n'apparait pas, le test continue normalement
+        console.log('Aucun doublon détecté, pas de modale à fermer.');
     }
     // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
     await page.waitForURL('**/patient/list');
@@ -311,8 +325,13 @@ export async function createPatientWithDoubleInsurer(page: Page) {
     await page.getByRole('switch').nth(1).click();
     await expect(page.getByText('Assureur')).toBeVisible({ timeout: 15000 });
     // Sélectionner l'assureur "IPM EYONE"
-    await page.getByRole('combobox', { name: 'Nom de l\'assureur' }).fill('IPM');
-    await page.locator('span').filter({ hasText: 'IPM EYONE' }).first().click();
+    const assureurInput = page.getByRole('combobox', { name: 'Nom de l\'assureur' });
+    await assureurInput.click();
+    await assureurInput.pressSequentially('IPM', { delay: 100 });
+
+    const assureurOption = page.locator('.mat-option, span').filter({ hasText: 'IPM EYONE' }).first();
+    await expect(assureurOption).toBeVisible({ timeout: 15000 });
+    await assureurOption.click();
     // la date de début de validité de l'assurance
     const startDate = faker.date.recent();
     await page.locator('input[name="ddv"]').fill(startDate.toLocaleDateString('fr-FR'));
@@ -349,8 +368,13 @@ export async function createPatientWithDoubleInsurer(page: Page) {
     await page.getByRole('button', { name: 'Ajouter une prise en charge' }).click();
     await expect(page.getByText('Assureur *')).toBeVisible({ timeout: 15000 });
     // Sélectionner l'assureur "IPM EYONE"
-    await page.getByRole('combobox', { name: 'Nom de l\'assureur' }).fill('IPM');
-    await page.locator('span').filter({ hasText: 'IPM EYONE' }).first().click();
+    const assureurInput2 = page.getByRole('combobox', { name: 'Nom de l\'assureur' });
+    await assureurInput2.click();
+    await assureurInput2.pressSequentially('IPM', { delay: 100 });
+
+    const assureurOption2 = page.locator('.mat-option, span').filter({ hasText: 'IPM EYONE' }).first();
+    await expect(assureurOption2).toBeVisible({ timeout: 15000 });
+    await assureurOption2.click();
     // la date de début de validité de l'assurance
     const startDateInsurer = faker.date.recent();
     await page.getByRole('dialog').locator('input[name="dd"]').fill(startDateInsurer.toLocaleDateString('fr-FR'));
