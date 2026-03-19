@@ -254,7 +254,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Attendre que la page soit complètement chargée
         await page.waitForLoadState('networkidle');
         // Vérification que les informations du patient sont affichées 
-        await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible();
+        await expect(page.locator('tbody tr').filter({ hasText: tarifName }).first()).toBeVisible();
     });
 
     await test.step('TC-010 : Ajouter un tarif de type ambulatoire à une convention de prix', async () => {
@@ -407,7 +407,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Attendre que la page soit complètement chargée
         await page.waitForLoadState('networkidle');
         // Vérification que les informations du patient sont affichées 
-        await expect(page.locator('tbody tr').filter({ hasText: 'PHARMACIE' })).toBeVisible();
+        await expect(page.locator('tbody tr').filter({ hasText: 'PHARMACIE' }).first()).toBeVisible();
     });
 
     await test.step('TC-015 : Créer une quote-part de répartition sur les produits', async () => {
@@ -437,7 +437,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         // Attendre que la page soit complètement chargée
         await page.waitForLoadState('networkidle');
         // Vérification que les informations du patient sont affichées 
-        await expect(page.locator('tbody tr').filter({ hasText: quotePartName })).toBeVisible();
+        await expect(page.locator('tbody tr').filter({ hasText: quotePartName }).first()).toBeVisible();
         // await page.pause();
     });
 
@@ -451,7 +451,7 @@ test('01_TNR-Facturation et Caisse', async ({ page }) => {
         await expect(page.getByText('Catégorie', { exact: true })).toBeVisible();
 
         await expect(page.getByText('Ajouter une catégorie')).toBeVisible();
-        await page.getByText('Ajouter une catégorie', { exact: true }).click();
+        await page.getByText('Ajouter une catégorie').click();
         await page.getByRole('textbox', { name: 'Nom' }).fill(`Catégorie ${Date.now()}`);
         await page.getByPlaceholder(' Prix   ').fill('75000');
         await page.getByRole('button', { name: 'Sauvegarder' }).click();

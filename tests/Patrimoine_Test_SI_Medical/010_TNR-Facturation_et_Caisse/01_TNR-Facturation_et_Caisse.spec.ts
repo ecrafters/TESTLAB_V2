@@ -113,10 +113,10 @@ test('Facturer des prestations avec un patient assuré', async ({ page }) => {
 });
 
 test('Encaissement des prestations avec un patient assuré', async ({ page }) => {
-    let patientName: string;
 
     await test.step('TC-037 : Encaisser une hospitalisation avec un patient assuré', async () => {
         await login(page);  // Utilise automatiquement les identifiants de l'environnement
+        await page.locator('#vertical-menu-btn').click();
         await page.getByRole('link', { name: ' Règlements à payer' }).click();
         const responseReglements = page.waitForURL('**/gestion-financiere/reglements-a-payer');
         await responseReglements;
@@ -126,7 +126,7 @@ test('Encaissement des prestations avec un patient assuré', async ({ page }) =>
     await test.step('TC-049 : Encaisser une consultation avec un patient assuré', async () => {
         await page.getByRole('button', { name: 'Rafraîchir' }).click();
         await page.waitForLoadState('networkidle');
-        await encaisserPrestation(page, 'Ambulatoire');
+        await encaisserPrestation(page, 'Consultation');
     });
 
     await test.step('TC-050 : Encaisser une analyse avec un patient assuré', async () => {
@@ -145,6 +145,49 @@ test('Encaissement des prestations avec un patient assuré', async ({ page }) =>
         await page.getByRole('button', { name: 'Rafraîchir' }).click();
         await page.waitForLoadState('networkidle');
         await encaisserPrestation(page, 'Pharmacie');
+    });
+
+    await test.step('TC-064 : Générer le récapitulatif caisse de la journée', async () => {
+        await page.getByRole('button', { name: 'Recap. de la caisse' }).click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('heading', { name: 'Résumés de caisse' })).toBeVisible();
+        const generateButton = page.getByRole('button', { name: 'Générer le récapitulatif de' });
+        await expect(generateButton).toBeVisible();
+        await generateButton.click();
+        await page.waitForLoadState('networkidle');
+        await page.getByRole('button', { name: 'Fermer' }).click();
+    });
+
+    await test.step('TC-065 : Générer un relevé de facture', async () => {
+        const invoiceLink = page.getByRole('link', { name: 'Relevés de factures 󰅀' });
+        await invoiceLink.scrollIntoViewIfNeeded();
+        await invoiceLink.click();
+        // Attendre 0,5 seconde pour s'assurer que le menu est bien chargé
+        await page.waitForTimeout(500);
+        await page.getByRole('link', { name: 'Créer' }).click();
+        await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
+        await expect(page.getByRole('heading', { name: 'Nouveau relevé' })).toBeVisible();
+        // je veux récupérer le contenu de la première ligne du tableau des factures
+        const firstRow = await page.locator('tbody tr').first().allTextContents();
+        console.log(firstRow[0].split('-')[0].slice(-12)); // Affiche le contenu de la première cellule de la première ligne
+        const IPM = firstRow[0].split('-')[0].slice(-12);
+        // Cliquer sur les 3 premières lignes du tableau qui contient l'IPM récupéré
+        await page.locator('tbody tr').filter({ hasText: IPM }).first().locator('input[type="checkbox"]').check();
+        await page.locator('tbody tr').filter({ hasText: IPM }).nth(1).locator('input[type="checkbox"]').check();
+        await page.locator('tbody tr').filter({ hasText: IPM }).nth(2).locator('input[type="checkbox"]').check();
+        await page.getByRole('button', { name: 'Créer le relevé de factures' }).click();
+        await page.waitForLoadState('networkidle'); // Attendre la réponse pour s'assurer que le tableau est bien chargé
+        await expect(page.getByRole('heading', { name: 'Relevés en attente' })).toBeVisible();
+        await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
+        await expect(page.locator('tbody tr').filter({ hasText: 'Terminé' }).first()).toBeVisible();
+        await page.locator('tbody tr').filter({ hasText: 'Terminé' }).first().locator('td').last().locator('button').click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('heading', { name: 'Visualisation d\'un relevé de' })).toBeVisible();
+        await expect(page.getByRole('button', { name: '󰈦 Générer PDF' })).toBeVisible();
+        await page.getByRole('button', { name: '󰈦 Générer PDF' }).click();
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('button').filter({ hasText: /^$/ }).nth(2)).toBeVisible();
+        await page.pause(); // Pause pour permettre l'inspection manuelle du récapitulatif de caisse généré
     });
 
 
