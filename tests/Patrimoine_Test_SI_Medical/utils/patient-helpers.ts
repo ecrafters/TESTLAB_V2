@@ -132,7 +132,26 @@ export async function loginWithCredentials(page: Page, email: string, password: 
     await page.getByRole('textbox', { name: 'Mot de passe' }).fill(password);
     await page.getByRole('button', { name: 'Connexion' }).click();
     await page.waitForLoadState('networkidle');
+    expect(page.getByRole('heading', { name: 'Accueil' })).toBeVisible({ timeout: 15000 });
 }
+
+/**
+ * Déconnexion de l'application
+ * */
+export async function logout(page: Page) {
+
+    const logoutButton = page.locator('#page-header-user-dropdown > .ml-1');
+    await expect(logoutButton).toBeVisible();
+    await logoutButton.click();
+    await page.locator('.ri-shut-down-line').click();
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', { name: 'Connexion' })).toBeVisible({ timeout: 15000 });
+
+    // await expect(page.locator('#page-header-user-dropdown > .ml-1')).toBeVisible();
+    // await page.locator('#page-header-user-dropdown > .ml-1').click();
+    // await expect(page.locator('.text-primary')).toHaveText('Connexion');
+    console.log('🔒 Déconnecté avec succès');
+};
 
 /**
  * Navigation vers la page des patients
@@ -268,7 +287,7 @@ export async function createPatientWithInsurer(page: Page) {
     // if (responseBody.length > 0) {
     //     await page.getByRole('button', { name: 'OUI' }).click();
     // }
-     // Attendre jusqu'à 5 secondes l'apparition du bouton OUI (détection de doublons api : check-likeness-patient)
+    // Attendre jusqu'à 5 secondes l'apparition du bouton OUI (détection de doublons api : check-likeness-patient)
     const btnOui = page.getByRole('button', { name: 'OUI' });
     try {
         await btnOui.waitFor({ state: 'visible', timeout: 5000 });
