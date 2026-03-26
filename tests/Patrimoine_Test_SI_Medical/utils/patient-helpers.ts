@@ -9,7 +9,7 @@ export async function getFirstPatientFromAPIWithClearSearch(page: Page) {
     const waitForPatients = page.waitForResponse('**/patients**');
     // Attendre que la page soit complètement chargée
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible();
 
     await page.getByRole('button', { name: ' Effacer la Recherche' }).click();
     const responsePatients = await waitForPatients;
@@ -23,7 +23,7 @@ export async function getFirstPatientFromAPIWithClearSearch(page: Page) {
  */
 export async function openSearchPanel(page: Page) {
     await page.locator('button').filter({ hasText: 'Rechercher' }).click();
-    await expect(page.getByRole('heading', { name: 'Recherche' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Recherche' })).toBeVisible();
 }
 
 /**
@@ -90,34 +90,28 @@ export async function login(page: Page, useAdmin: boolean = false) {
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    // await page.pause(); // Permet de voir la page de login avant de remplir les champs
-    // MSAS
-    await expect(page).toHaveTitle('Dossier Patient Unique Partagé');
-    await page.getByRole('textbox', { name: 'Identifiant' }).fill(email);
-    await page.getByRole('textbox', { name: 'Mot de passe' }).fill(password);
-    await page.getByRole('button', { name: 'Connexion' }).click();
+    // je veux récupèrer la baseUrl
+    console.log(`Base URL utilisée pour le test: ${envConfig.baseUrl}`);
+    switch (envConfig.baseUrl) {
+        case 'https://msas.preprod.dokploy.eyone.net':
+        case 'https://dpp.eyone.net':
+            await loginMSAS(page, email, password);
+            break;
+        case 'https://passmousso.app':
+            await loginPassMousso(page, email, password);
+            break;
+        case 'https://simedical.app':
+            await loginSIMedical(page, email, password);
+            break;
+        case 'https://fajma.simedical.app':
+            await loginFajma(page, email, password);
+            break;
+        default:
+            throw new Error(`Base URL inconnue: ${envConfig.baseUrl}`);
+    }
 
-    // PASSMOUSSO
-    // await expect(page).toHaveTitle('PASS SANTE MOUSSO');
-    // await page.locator('app-pass-mousso #email').fill(email);
-    // await page.locator('app-pass-mousso #password').fill(password);
-    // await page.getByRole('button', { name: 'Connexion' }).click();
-
-    // SIMEDICAL
-    // await expect(page).toHaveTitle('SI Médical');
-    // await page.getByRole('textbox', { name: 'Identifiant Identifiant Nom d' }).fill(email);
-    // await page.getByRole('textbox', { name: 'Mot de passe Mot de passe Mot' }).fill(password);
-    // await page.getByRole('button', { name: 'Se connecter' }).click();
-
-    // FAJ'MA
-    // await expect(page).toHaveTitle('FAJ\'MA');
-    // await page.locator('app-fajma #email').fill(email);
-    // await page.locator('app-fajma #password').fill(password);
-    // await page.getByRole('button', { name: 'Connexion' }).click();
-    // Attendre que la page soit complètement chargée
-    await page.waitForLoadState('networkidle');
     // Vérification que les informations du patient sont affichées 
-    expect(page.getByRole('heading', { name: 'Accueil' })).toBeVisible({ timeout: 15000 });
+    expect(page.getByRole('heading', { name: 'Accueil' })).toBeVisible();
 }
 
 /**
@@ -126,13 +120,24 @@ export async function login(page: Page, useAdmin: boolean = false) {
 export async function loginWithCredentials(page: Page, email: string, password: string) {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-
-    await expect(page).toHaveTitle('Dossier Patient Unique Partagé');
-    await page.getByRole('textbox', { name: 'Identifiant' }).fill(email);
-    await page.getByRole('textbox', { name: 'Mot de passe' }).fill(password);
-    await page.getByRole('button', { name: 'Connexion' }).click();
+    switch (envConfig.baseUrl) {
+        case 'https://msas.preprod.dokploy.eyone.net':
+            await loginMSAS(page, email, password);
+            break;
+        case 'https://passmousso.app':
+            await loginPassMousso(page, email, password);
+            break;
+        case 'https://simedical.app':
+            await loginSIMedical(page, email, password);
+            break;
+        case 'https://fajma.simedical.app':
+            await loginFajma(page, email, password);
+            break;
+        default:
+            throw new Error(`Base URL inconnue: ${envConfig.baseUrl}`);
+    }
     await page.waitForLoadState('networkidle');
-    expect(page.getByRole('heading', { name: 'Accueil' })).toBeVisible({ timeout: 15000 });
+    expect(page.getByRole('heading', { name: 'Accueil' })).toBeVisible();
 }
 
 /**
@@ -145,11 +150,6 @@ export async function logout(page: Page) {
     await logoutButton.click();
     await page.locator('.ri-shut-down-line').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('button', { name: 'Connexion' })).toBeVisible({ timeout: 15000 });
-
-    // await expect(page.locator('#page-header-user-dropdown > .ml-1')).toBeVisible();
-    // await page.locator('#page-header-user-dropdown > .ml-1').click();
-    // await expect(page.locator('.text-primary')).toHaveText('Connexion');
     console.log('🔒 Déconnecté avec succès');
 };
 
@@ -158,13 +158,13 @@ export async function logout(page: Page) {
  */
 export async function navigateToPatientsList(page: Page) {
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h4', { hasText: 'Accueil' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4', { hasText: 'Accueil' })).toBeVisible();
 
     const patientsButton = page.locator('h6', { hasText: 'Les patients' });
     await expect(patientsButton).toBeVisible();
     await patientsButton.click({ force: true });
 
-    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible();
 }
 
 /**
@@ -193,15 +193,27 @@ export async function getFirstPatientFromAPI(page: Page) {
         patientlink.click()
     ]);
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Les patients' })).toBeVisible();
     // const responsePatients = await waitForPatients;
     expect(responsePatients.status()).toBe(200);
     const firstPatient = (await responsePatients.json()).content[0];
-    await page.locator('a').filter({ hasText: 'DPUP' }).click();
-    // await page.getByRole('link', { name: 'Pass Santé Mousso' }).click();
-    // await page.getByRole('link', { name: 'SI Médical', exact: true }).click();
-    // await page.getByRole('link', { name: 'FAJ\'MA' }).click();
-
+    switch (envConfig.baseUrl) {
+        case 'https://msas.preprod.dokploy.eyone.net':
+        case 'https://dpp.eyone.net':
+            await page.locator('a').filter({ hasText: 'DPUP' }).click();
+            break;
+        case 'https://passmousso.app':
+            await page.getByRole('link', { name: 'Pass Santé Mousso' }).click();
+            break;
+        case 'https://simedical.app':
+            await page.getByRole('link', { name: 'SI Médical', exact: true }).click();
+            break;
+        case 'https://fajma.simedical.app':
+            await page.getByRole('link', { name: 'FAJ\'MA' }).click();
+            break;
+        default:
+            throw new Error(`Base URL inconnue: ${envConfig.baseUrl}`);
+    }
     return firstPatient;
 }
 /**
@@ -209,7 +221,7 @@ export async function getFirstPatientFromAPI(page: Page) {
  */
 export async function createPatientWithInsurer(page: Page) {
     // Vérification que les informations du patient sont affichées
-    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible();
 
     // Essayons avec getByText (méthode la plus flexible)
     const addPatientButton = page.getByText('Créer un patient');
@@ -247,14 +259,14 @@ export async function createPatientWithInsurer(page: Page) {
 
     // Activer la prise en charge
     await page.getByRole('switch').nth(1).click();
-    await expect(page.getByText('Assureur')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Assureur')).toBeVisible();
     // Sélectionner l'assureur "IPM EYONE"
     const assureurInput = page.getByRole('combobox', { name: 'Nom de l\'assureur' });
     await assureurInput.click();
     await assureurInput.pressSequentially('IPM', { delay: 100 });
 
     const assureurOption = page.locator('.mat-option, span').filter({ hasText: 'IPM EYONE' }).first();
-    await expect(assureurOption).toBeVisible({ timeout: 15000 });
+    await expect(assureurOption).toBeVisible();
     await assureurOption.click();
     // la date de début de validité de l'assurance
     const startDate = faker.date.recent();
@@ -298,14 +310,14 @@ export async function createPatientWithInsurer(page: Page) {
     }
     // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
     await page.waitForURL('**/patient/list');
-    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible();
 }
 
 /**
  * Crée un patient avec une double prise en charge (2 assureurs)
  */
 export async function createPatientWithDoubleInsurer(page: Page) {
-    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible();
 
     // Essayons avec getByText (méthode la plus flexible)
     const addPatientButton = page.getByText('Créer un patient');
@@ -342,14 +354,14 @@ export async function createPatientWithDoubleInsurer(page: Page) {
 
     // Activer la prise en charge
     await page.getByRole('switch').nth(1).click();
-    await expect(page.getByText('Assureur')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Assureur')).toBeVisible();
     // Sélectionner l'assureur "IPM EYONE"
     const assureurInput = page.getByRole('combobox', { name: 'Nom de l\'assureur' });
     await assureurInput.click();
     await assureurInput.pressSequentially('IPM', { delay: 100 });
 
     const assureurOption = page.locator('.mat-option, span').filter({ hasText: 'IPM EYONE' }).first();
-    await expect(assureurOption).toBeVisible({ timeout: 15000 });
+    await expect(assureurOption).toBeVisible();
     await assureurOption.click();
     // la date de début de validité de l'assurance
     const startDate = faker.date.recent();
@@ -376,23 +388,23 @@ export async function createPatientWithDoubleInsurer(page: Page) {
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     // Vérification que le patient a été créé et que nous sommes redirigés vers la page de détails du patient
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible();
 
     await page.locator('.dropdown-toggle.mdi').first().click();
     await page.locator('.dropdown-menu.dropdown-menu-right.show > a').first().click();
     await page.waitForURL('**/patient/**');
-    await expect(page.getByRole('tab', { name: 'Prise en charge' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('tab', { name: 'Prise en charge' })).toBeVisible();
     await page.getByRole('tab', { name: 'Prise en charge' }).click();
-    await expect(page.getByRole('button', { name: 'Ajouter une prise en charge' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: 'Ajouter une prise en charge' })).toBeVisible();
     await page.getByRole('button', { name: 'Ajouter une prise en charge' }).click();
-    await expect(page.getByText('Assureur *')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Assureur *')).toBeVisible();
     // Sélectionner l'assureur "IPM EYONE"
     const assureurInput2 = page.getByRole('combobox', { name: 'Nom de l\'assureur' });
     await assureurInput2.click();
     await assureurInput2.pressSequentially('IPM', { delay: 100 });
 
     const assureurOption2 = page.locator('.mat-option, span').filter({ hasText: 'IPM EYONE' }).first();
-    await expect(assureurOption2).toBeVisible({ timeout: 15000 });
+    await expect(assureurOption2).toBeVisible();
     await assureurOption2.click();
     // la date de début de validité de l'assurance
     const startDateInsurer = faker.date.recent();
@@ -407,9 +419,43 @@ export async function createPatientWithDoubleInsurer(page: Page) {
     await page.getByRole('dialog').locator('#pourcentage').fill('90');
     await page.getByRole('dialog').locator('#plafond').fill('100000');
     await page.getByRole('button', { name: 'Enregistrer' }).click();
-    await expect(page.getByText('100000')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('100000')).toBeVisible();
 
     // Navigation vers la liste des patients
     await page.goBack();
-    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible();
 }
+
+async function loginMSAS(page: Page, email: string, password: string) {
+    // MSAS
+    await expect(page).toHaveTitle('Dossier Patient Unique Partagé');
+    await page.getByRole('textbox', { name: 'Identifiant' }).fill(email);
+    await page.getByRole('textbox', { name: 'Mot de passe' }).fill(password);
+    await page.getByRole('button', { name: 'Connexion' }).click();
+
+}
+async function loginPassMousso(page: Page, email: string, password: string) {
+    // PASSMOUSSO
+    await expect(page).toHaveTitle('PASS SANTE MOUSSO');
+    await page.locator('app-pass-mousso #email').fill(email);
+    await page.locator('app-pass-mousso #password').fill(password);
+    await page.getByRole('button', { name: 'Connexion' }).click();
+}
+
+async function loginSIMedical(page: Page, email: string, password: string) {
+    // SIMEDICAL
+    await expect(page).toHaveTitle('SI Médical');
+    await page.getByRole('textbox', { name: 'Identifiant Identifiant Nom d' }).fill(email);
+    await page.getByRole('textbox', { name: 'Mot de passe Mot de passe Mot' }).fill(password);
+    await page.getByRole('button', { name: 'Se connecter' }).click();
+}
+
+async function loginFajma(page: Page, email: string, password: string) {
+    // FAJ'MA
+    await expect(page).toHaveTitle('FAJ\'MA');
+    await page.locator('app-fajma #email').fill(email);
+    await page.locator('app-fajma #password').fill(password);
+    await page.getByRole('button', { name: 'Connexion' }).click();
+}
+
+

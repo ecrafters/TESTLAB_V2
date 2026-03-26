@@ -87,7 +87,6 @@ test('TNR-Rdv', async ({ page }) => {
         await page.getByRole('button', { name: 'Télécharger' }).click();
         await page.waitForLoadState('networkidle');
         await page.getByText('×').click();
-        await page.pause(); // Attendre que les champs de date soient visibles
     });
 
 });

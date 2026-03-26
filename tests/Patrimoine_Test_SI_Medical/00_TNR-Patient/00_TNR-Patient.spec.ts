@@ -228,10 +228,10 @@ test('TNR-Patient', async ({ page }) => {
     });
 
     await test.step('TC-004 : Rechercher un patient avec son prénom', async () => {
-        const waitForPatients = page.waitForResponse('**/patients**');
         await page.reload();
+        const waitForPatients = page.waitForResponse('**/patients**');
         // Attendre que la page soit complètement chargée
-        await page.waitForLoadState('networkidle');
+        // await page.waitForLoadState('networkidle');
         await expect(page.locator('h4', { hasText: 'Les patients' })).toBeVisible({ timeout: 15000 });
         const responsePatients = await waitForPatients;
         expect(responsePatients.status()).toBe(200);
