@@ -369,7 +369,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await page.getByRole('button', { name: 'Sauvegarder' }).click();
             // await page.waitForResponse('**/dokploy-medical-product/1.0/products');
             // Attendre que la page soit complètement chargée
-            await page.waitForLoadState('networkidle');
+            // await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
             await expect(page.getByRole('heading', { name: 'Produits' })).toBeVisible();
         });
@@ -695,6 +695,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
         });
 
         await test.step('TC-064 : Générer le récapitulatif caisse de la journée', async () => {
+            await page.waitForTimeout(1000); // Pause pour permettre l'inspection manuelle de la page des règlements à payer avant de générer le récapitulatif de caisse
             const recapButton = page.getByText('Recap. de la caisse');
             await expect(recapButton).toBeVisible();
             await recapButton.click();
@@ -707,37 +708,38 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await page.getByRole('button', { name: 'Fermer' }).click();
         });
 
-        await test.step.skip('TC-065 : Générer un relevé de facture', async () => {
-            // await page.pause(); // Pause pour permettre l'inspection manuelle de la page des règlements à payer avant de générer le relevé de factures
+        await test.step('TC-065 : Générer un relevé de facture', async () => {
             const invoiceLink = page.getByText('Relevés de factures');
             await invoiceLink.scrollIntoViewIfNeeded();
             await invoiceLink.click();
             // Attendre 0,5 seconde pour s'assurer que le menu est bien chargé
             await page.waitForTimeout(500);
-            await page.getByRole('link', { name: 'Créer' }).click();
+            await page.locator('.sub-menu.ng-star-inserted.mm-collapse.mm-show > li > .side-nav-link-ref').first().click();
             await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
-            await expect(page.getByRole('heading', { name: 'Nouveau relevé' })).toBeVisible();
+            await expect(page.getByText('Nouveau relevé')).toBeVisible();
             // je veux récupérer le contenu de la première ligne du tableau des factures
             const firstRow = await page.locator('tbody tr').first().allTextContents();
             console.log(firstRow[0].split('-')[0].slice(-12)); // Affiche le contenu de la première cellule de la première ligne
             const IPM = firstRow[0].split('-')[0].slice(-12);
             // Cliquer sur les 3 premières lignes du tableau qui contient l'IPM récupéré
             await page.locator('tbody tr').filter({ hasText: IPM }).first().locator('input[type="checkbox"]').check();
-            await page.locator('tbody tr').filter({ hasText: IPM }).nth(1).locator('input[type="checkbox"]').check();
-            await page.locator('tbody tr').filter({ hasText: IPM }).nth(2).locator('input[type="checkbox"]').check();
-            await page.getByRole('button', { name: 'Créer le relevé de factures' }).click();
+            // await page.locator('tbody tr').filter({ hasText: IPM }).nth(1).locator('input[type="checkbox"]').check();
+            // await page.locator('tbody tr').filter({ hasText: IPM }).nth(2).locator('input[type="checkbox"]').check();
+            await page.getByText('Créer le relevé de factures').click();
             await page.waitForLoadState('networkidle'); // Attendre la réponse pour s'assurer que le tableau est bien chargé
-            await expect(page.getByRole('heading', { name: 'Relevés en attente' })).toBeVisible();
+            await expect(page.locator('h4').getByText('Nouveau relevé')).toBeVisible();
             await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
             await expect(page.locator('tbody tr').filter({ hasText: 'Terminé' }).first()).toBeVisible();
             await page.locator('tbody tr').filter({ hasText: 'Terminé' }).first().locator('td').last().locator('button').click();
             await page.waitForLoadState('networkidle');
-            await expect(page.getByRole('heading', { name: 'Visualisation d\'un relevé de' })).toBeVisible();
-            await expect(page.getByRole('button', { name: '󰈦 Générer PDF' })).toBeVisible();
-            await page.getByRole('button', { name: '󰈦 Générer PDF' }).click();
+            await expect(page.getByText('Visualisation d\'un relevé de')).toBeVisible();
+            await expect(page.getByText('Générer PDF')).toBeVisible();
+            await page.getByText('Générer PDF').click();
+            await expect(page.getByText('Générer Excel')).toBeVisible();
+            await page.getByText('Générer Excel').click();
             await page.waitForLoadState('networkidle');
-            await expect(page.getByRole('button').filter({ hasText: /^$/ }).nth(2)).toBeVisible();
-            // await page.pause(); // Pause pour permettre l'inspection manuelle du récapitulatif de caisse généré
+            await expect(page.locator('.btn.btn-light').first()).toBeVisible();
+            await page.pause(); // Pause pour permettre l'inspection manuelle du récapitulatif de caisse généré
         });
 
 
@@ -1046,10 +1048,9 @@ async function createPatient(page: Page) {
 }
 
 async function encaisserPrestation(page: Page, prestationName: string) {
-    await page.waitForLoadState('networkidle');
     // await page.pause(); // Pause pour permettre l'inspection manuelle avant d'encaisser
     // await expect(page.getByRole('heading', { name: 'à payer' })).toBeVisible();
-    await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
+    await page.waitForTimeout(1000); // Attendre 1 seconde pour s'assurer que le tableau est bien chargé
     const rowsText = await page.locator('tbody tr').allTextContents();
     // console.log('Contenu du tableau :', rowsText);
     await page.locator('tbody tr').filter({ hasText: prestationName })

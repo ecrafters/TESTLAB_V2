@@ -17,7 +17,7 @@ Ce projet contient les tests automatisés End-to-End (E2E) pour les applications
 
 2.  **Installer les dépendances**
     ```bash
-    npm ci
+    npm i
     ```
 
 3.  **Installer les navigateurs Playwright**
