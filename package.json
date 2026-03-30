@@ -2,7 +2,6 @@
   "name": "apprendre-playwright",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "test": "npm run clean-reports && npx playwright test",
     "clean-reports": "rm -rf playwright-report/* test-results/*",

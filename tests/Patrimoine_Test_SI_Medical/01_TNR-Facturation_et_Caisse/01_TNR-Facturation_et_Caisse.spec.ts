@@ -695,7 +695,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
         });
 
         await test.step('TC-064 : Générer le récapitulatif caisse de la journée', async () => {
-            await page.waitForTimeout(1000); // Pause pour permettre l'inspection manuelle de la page des règlements à payer avant de générer le récapitulatif de caisse
+            await page.waitForTimeout(2000); // Pause pour permettre l'inspection manuelle de la page des règlements à payer avant de générer le récapitulatif de caisse
             const recapButton = page.getByText('Recap. de la caisse');
             await expect(recapButton).toBeVisible();
             await recapButton.click();
@@ -1048,9 +1048,9 @@ async function createPatient(page: Page) {
 }
 
 async function encaisserPrestation(page: Page, prestationName: string) {
-    // await page.pause(); // Pause pour permettre l'inspection manuelle avant d'encaisser
+    await page.waitForLoadState('networkidle');
     // await expect(page.getByRole('heading', { name: 'à payer' })).toBeVisible();
-    await page.waitForTimeout(1000); // Attendre 1 seconde pour s'assurer que le tableau est bien chargé
+    await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
     const rowsText = await page.locator('tbody tr').allTextContents();
     // console.log('Contenu du tableau :', rowsText);
     await page.locator('tbody tr').filter({ hasText: prestationName })
