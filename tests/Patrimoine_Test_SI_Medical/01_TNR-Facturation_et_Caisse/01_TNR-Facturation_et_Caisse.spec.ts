@@ -9,7 +9,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
     //     // Go to the starting url before each test.
     //     await page.goto('/');
     // });
-    
+
     test('Création et configuration des données', async ({ page }) => {
         let hospitalName: string;
         let productName: string;
@@ -409,7 +409,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre jusqu'à 5 secondes l'apparition du bouton OUI (détection de doublons api : check-likeness-patient)
             const alertDialog = page.getByRole('dialog', { name: 'Aucun emplacement de stock trouvé' });
             try {
-                await alertDialog.waitFor({ state: 'visible', timeout: 5000 });
+                await alertDialog.waitFor({ state: 'visible', timeout: 3000 });
             } catch (e) {
                 // Ignorer l'erreur si la modale de doublon n'apparait pas, le test continue normalement
                 console.log('Aucun doublon détecté, pas de modale à fermer.');
@@ -723,7 +723,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             const IPM = firstRow[0].split('-')[0].slice(-12);
             // Cliquer sur les 3 premières lignes du tableau qui contient l'IPM récupéré
             await page.locator('tbody tr').filter({ hasText: IPM }).first().locator('input[type="checkbox"]').check();
-            // await page.locator('tbody tr').filter({ hasText: IPM }).nth(1).locator('input[type="checkbox"]').check();
+            await page.locator('tbody tr').filter({ hasText: IPM }).nth(1).locator('input[type="checkbox"]').check();
             // await page.locator('tbody tr').filter({ hasText: IPM }).nth(2).locator('input[type="checkbox"]').check();
             await page.getByText('Créer le relevé de factures').click();
             await page.waitForLoadState('networkidle'); // Attendre la réponse pour s'assurer que le tableau est bien chargé
@@ -984,7 +984,7 @@ async function createPrestationPharmacy(page: Page, patientName: string) {
     await expect(page.getByRole('heading', { name: 'Produit à ajouter' })).toBeVisible();
     const Armoire = page.getByText('Armoire(s) assignée(s):');
     try {
-        await Armoire.waitFor({ state: 'visible', timeout: 5000 });
+        await Armoire.waitFor({ state: 'visible', timeout: 3000 });
         // Sélectionner une prestation
         await page.locator('.col-12 > .ng-select > .ng-select-container').first().click();
         const hospitalOption = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: 'PHARMACIE' }).first();
@@ -1035,7 +1035,7 @@ async function createPatient(page: Page) {
     // Attendre jusqu'à 5 secondes l'apparition du bouton OUI (détection de doublons api : check-likeness-patient)
     const btnOui = page.getByRole('button', { name: 'OUI' });
     try {
-        await btnOui.waitFor({ state: 'visible', timeout: 5000 });
+        await btnOui.waitFor({ state: 'visible', timeout: 3000 });
         await btnOui.click();
     } catch (e) {
         // Ignorer l'erreur si la modale de doublon n'apparait pas, le test continue normalement
@@ -1058,7 +1058,7 @@ async function encaisserPrestation(page: Page, prestationName: string) {
     await page.locator('.dropdown-menu.show .dropdown-item', { hasText: 'Encaisser' }).click();
     const encaisserType = page.getByRole('heading', { name: 'Options d\'encaissement' });
     try {
-        await encaisserType.waitFor({ state: 'visible', timeout: 5000 });
+        await encaisserType.waitFor({ state: 'visible', timeout: 3000 });
         await page.getByRole('button', { name: ' Encaisser' }).click();
     } catch (e) {
         console.log('Menu d\'encaissement classique détecté.');
