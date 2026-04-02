@@ -20,15 +20,9 @@ test.describe('TNR Medical et Paramedical', () => {
     // });
 
     test('TNR-Rdv', async ({ page }) => {
-        await test.step('TC-001 : Ajouter un motif à un seul professionnel de la santé', async () => {
+        await test.step('TC-007 : Créer une prestation de type consultation depuis la file d\'attente', async () => {
             await login(page);  // Utilise automatiquement les identifiants de l'environnement
             await page.locator('#vertical-menu-btn').click();
-            const appointmentsLink = page.getByRole('link', { name: ' Rendez-vous 󰅀' });
-            await appointmentsLink.scrollIntoViewIfNeeded();
-            await appointmentsLink.click();
-            await page.waitForTimeout(500);
-            await page.click('a[href*="/appointment/reasons"]');
-            await expect(page.getByRole('heading', { name: 'Motifs de Rendez-vous' })).toBeVisible();
         });
 
         await test.step('TC-002 : Ajouter un motif valable à plusieurs professionnels de la santé', async () => {

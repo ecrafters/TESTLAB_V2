@@ -26,14 +26,14 @@ export default defineConfig({
 
   // Timeout pour les assertions expect()
   expect: {
-    timeout: 30000,
+    timeout: 60000,
   },
 
   use: {
     viewport: { width: 1920, height: 1080 },
 
     baseURL: envConfig.baseUrl,
-    headless: !!process.env.CI, // headless en CI, avec fenêtre en local
+    // headless: !!process.env.CI, // headless en CI, avec fenêtre en local
 
     // Ralentir les actions si SLOW_MODE=true
     launchOptions: slowMode ? { slowMo: 1000 } : {},

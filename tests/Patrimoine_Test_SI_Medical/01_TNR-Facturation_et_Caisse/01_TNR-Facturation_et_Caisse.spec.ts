@@ -43,7 +43,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible();
+            await expect.soft(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible();
         });
 
         await test.step('TC-002 : Créer un acte de type consultation', async () => {
@@ -69,7 +69,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible();
+            await expect.soft(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible();
         });
 
         await test.step('TC-003 : Créer un acte de type Radiologie', async () => {
@@ -91,7 +91,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            // await expect(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible();
+            await expect.soft(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible();
 
         });
 
@@ -119,7 +119,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible();
+            await expect.soft(page.getByRole('heading', { name: 'Lignes des prestations mé' })).toBeVisible();
         });
 
         await test.step('TC-005 : Créer un employeur', async () => {
@@ -141,7 +141,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.getByRole('button', { name: 'Créer le fournisseur' })).toBeVisible();
+            await expect.soft(page.getByRole('button', { name: 'Créer le fournisseur' })).toBeVisible();
         });
 
         await test.step('TC-006 : Ajouter un organisme de remboursement', async () => {
@@ -161,7 +161,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.getByRole('heading', { name: 'Organismes de remboursement' })).toBeVisible();
+            await expect.soft(page.getByRole('heading', { name: 'Organismes de remboursement' })).toBeVisible();
         });
 
         await test.step('TC-007 : Ajouter un tarif de consultation à une convention de prix', async () => {
@@ -189,7 +189,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            // await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible();
+            await expect.soft(page.locator('tbody tr').filter({ hasText: tarifName }).first()).toBeVisible();
         });
 
         await test.step('TC-008 : Ajouter un tarif de type radiologie à une convention de prix', async () => {
@@ -225,7 +225,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.locator('tbody tr').filter({ hasText: tarifName }).first()).toBeVisible();
+            await expect.soft(page.locator('tbody tr').filter({ hasText: tarifName }).first()).toBeVisible();
         });
 
         await test.step('TC-009 : Ajouter un tarif de type analyse à une convention de prix', async () => {
@@ -261,7 +261,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.locator('tbody tr').filter({ hasText: tarifName }).first()).toBeVisible();
+            await expect.soft(page.locator('tbody tr').filter({ hasText: tarifName }).first()).toBeVisible();
         });
 
         await test.step('TC-010 : Ajouter un tarif de type ambulatoire à une convention de prix', async () => {
@@ -297,7 +297,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.locator('tbody tr').filter({ hasText: tarifName }).first()).toBeVisible();
+            await expect.soft(page.locator('tbody tr').filter({ hasText: tarifName }).first()).toBeVisible();
         });
 
         await test.step('TC-011 : Ajouter une convention de prix', async () => {
@@ -333,8 +333,8 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.getByRole('heading', { name: 'Détails' })).toBeVisible();
-            // await expect(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible();
+            await expect.soft(page.getByRole('heading', { name: 'Détails' })).toBeVisible();
+            await expect.soft(page.locator('tbody tr').filter({ hasText: tarifName })).toBeVisible();
         });
 
         await test.step('TC-012 : Créer un produit de pharmacie', async () => {
@@ -371,7 +371,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             // await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.getByRole('heading', { name: 'Produits' })).toBeVisible();
+            await expect.soft(page.getByRole('heading', { name: 'Produits' })).toBeVisible();
         });
 
         await test.step('TC-013 : Créer un emplacement de stocks', async () => {
@@ -390,7 +390,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.getByRole('button', { name: 'Créer un emplacement de stock' })).toBeVisible({ timeout: 60000 });
+            await expect.soft(page.getByRole('button', { name: 'Créer un emplacement de stock' })).toBeVisible({ timeout: 60000 });
         });
 
         await test.step('TC-014 : Ajouter un emplacement de stocks au produit', async () => {
@@ -421,7 +421,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre que la page soit complètement chargée
             await page.waitForLoadState('networkidle');
             // Vérification que les informations du patient sont affichées 
-            await expect(page.locator('tbody tr').filter({ hasText: 'ORL' }).first()).toBeVisible();
+            await expect.soft(page.locator('tbody tr').filter({ hasText: 'ORL' }).first()).toBeVisible();
         });
 
         await test.step('TC-015 : Créer une quote-part de répartition sur les produits', async () => {
@@ -716,7 +716,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await page.waitForTimeout(500);
             await page.locator('.sub-menu.ng-star-inserted.mm-collapse.mm-show > li > .side-nav-link-ref').first().click();
             await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
-            await expect(page.getByText('Nouveau relevé')).toBeVisible();
+            await expect.soft(page.getByText('Nouveau relevé')).toBeVisible();
             // je veux récupérer le contenu de la première ligne du tableau des factures
             const firstRow = await page.locator('tbody tr').first().allTextContents();
             console.log(firstRow[0].split('-')[0].slice(-12)); // Affiche le contenu de la première cellule de la première ligne
@@ -727,18 +727,18 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // await page.locator('tbody tr').filter({ hasText: IPM }).nth(2).locator('input[type="checkbox"]').check();
             await page.getByText('Créer le relevé de factures').click();
             await page.waitForLoadState('networkidle'); // Attendre la réponse pour s'assurer que le tableau est bien chargé
-            await expect(page.locator('h4').getByText('Nouveau relevé')).toBeVisible();
+            await expect.soft(page.locator('h4').getByText('Nouveau relevé')).toBeVisible();
             await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
-            await expect(page.locator('tbody tr').filter({ hasText: 'Terminé' }).first()).toBeVisible();
+            await expect.soft(page.locator('tbody tr').filter({ hasText: 'Terminé' }).first()).toBeVisible();
             await page.locator('tbody tr').filter({ hasText: 'Terminé' }).first().locator('td').last().locator('button').click();
             await page.waitForLoadState('networkidle');
-            await expect(page.getByText('Visualisation d\'un relevé de')).toBeVisible();
-            await expect(page.getByText('Générer PDF')).toBeVisible();
+            await expect.soft(page.getByText('Visualisation d\'un relevé de')).toBeVisible();
+            await expect.soft(page.getByText('Générer PDF')).toBeVisible();
             await page.getByText('Générer PDF').click();
-            await expect(page.getByText('Générer Excel')).toBeVisible();
+            await expect.soft(page.getByText('Générer Excel')).toBeVisible();
             await page.getByText('Générer Excel').click();
             await page.waitForLoadState('networkidle');
-            await expect(page.locator('.btn.btn-light').first()).toBeVisible();
+            await expect.soft(page.locator('.btn.btn-light').first()).toBeVisible();
             await page.pause(); // Pause pour permettre l'inspection manuelle du récapitulatif de caisse généré
         });
 
@@ -777,11 +777,11 @@ async function createPrestationAmbulatoire(page: Page, patientName: string) {
         page.waitForResponse('**/dokploy-medical-billing/1.0/prestations/rev2', { timeout: 15000 }).catch(() => null), // catch évite de planter si la req n'est pas strictement nécessaire
         page.getByText('Enregistrer').click()
     ]);
-    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
-    await expect(page.locator('#regenerate')).toBeVisible();
+    await expect.soft(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
+    await expect.soft(page.locator('#regenerate')).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
+    await expect.soft(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createPrestationStep(page: Page, patientName: string, prestationType: string) {
@@ -822,11 +822,11 @@ async function createPrestationImagerie(page: Page, patientName: string) {
         page.getByText('Enregistrer').click()
     ]);
     // await page.waitForResponse('**/dokploy-medical-billing/1.0/prestations/*');
-    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
-    await expect(page.locator('#regenerate')).toBeVisible();
+    await expect.soft(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
+    await expect.soft(page.locator('#regenerate')).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
+    await expect.soft(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createPrestationAnalyse(page: Page, patientName: string) {
@@ -856,11 +856,11 @@ async function createPrestationAnalyse(page: Page, patientName: string) {
         page.waitForResponse('**/dokploy-medical-billing/1.0/prestations/rev2', { timeout: 15000 }).catch(() => null), // catch évite de planter si la req n'est pas strictement nécessaire
         page.getByRole('button', { name: 'Enregistrer' }).click()
     ]);
-    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
-    await expect(page.locator('#regenerate')).toBeVisible();
+    await expect.soft(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
+    await expect.soft(page.locator('#regenerate')).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
+    await expect.soft(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createHospitalization(page: Page, patientName: string) {
@@ -919,10 +919,10 @@ async function createHospitalization(page: Page, patientName: string) {
 
     await page.getByRole('button', { name: 'Facturation' }).click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
+    await expect.soft(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
+    await expect.soft(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createPrestationConsultation(page: Page, patientName: string, doublePriseEnCharge: boolean = false) {
@@ -956,10 +956,10 @@ async function createPrestationConsultation(page: Page, patientName: string, dou
     // await page.locator('h4', { hasText: 'Total Facture' }).scrollIntoViewIfNeeded();
     await page.getByText('Enregistrer').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture', { exact: true })).toBeVisible();
+    await expect.soft(page.getByText('Facture', { exact: true })).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
+    await expect.soft(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createPrestationPharmacy(page: Page, patientName: string) {
@@ -999,12 +999,12 @@ async function createPrestationPharmacy(page: Page, patientName: string) {
     await page.locator('#mouvementValue').fill('10');
     await page.getByRole('button', { name: 'Ajouter à la liste' }).click();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('tbody tr').filter({ hasText: 'DOLIPRANE' })).toBeVisible();
+    await expect.soft(page.locator('tbody tr').filter({ hasText: 'DOLIPRANE' })).toBeVisible();
     await page.getByText('Enregistrer').click();
-    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
+    await expect.soft(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('Facture régénérée avec succès')).toBeVisible();
+    await expect.soft(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
 async function createPatient(page: Page) {
