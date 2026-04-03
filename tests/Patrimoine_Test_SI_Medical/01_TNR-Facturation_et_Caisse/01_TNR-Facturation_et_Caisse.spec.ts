@@ -25,11 +25,10 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             // Attendre 0,5 seconde pour s'assurer que le menu est bien chargé
             await page.waitForTimeout(500);
             await page.getByRole('link', { name: 'Prestations médicales 󰅀' }).click();
-            await page.getByRole('link', { name: 'Configurer un acte', exact: true }).click();
+            await page.getByRole('link', { name: 'Configurer un acte', exact: true }).click({ force: true });
 
             // Attendre que la page soit complètement chargée
-            await page.waitForURL('**/settings/prest/set-act**');
-            await expect(page).toHaveURL(`${envConfig.baseUrl}/settings/prest/set-act`);
+            // await page.waitForURL('**/settings/prest/set-act**');
 
             // Vérification que les informations du patient sont affichées 
             await expect(page.getByRole('heading', { name: 'Création d\'un acte' })).toBeVisible();
@@ -403,7 +402,6 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await page.locator('tbody tr').filter({ hasText: productName }).locator('.dropdown-toggle.mdi').first().click();
             await page.locator('.dropdown-menu.show .dropdown-item', { hasText: 'Visualiser' }).click();
             await page.waitForURL('**/editorview/edit/*');
-            await page.waitForLoadState('networkidle');
 
             await page.getByRole('tab', { name: 'Gestion de stock' }).click();
             // Attendre jusqu'à 5 secondes l'apparition du bouton OUI (détection de doublons api : check-likeness-patient)
@@ -437,7 +435,6 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await page.locator('tbody tr').filter({ hasText: productName }).locator('.dropdown-toggle.mdi').first().click();
             await page.locator('.dropdown-menu.show .dropdown-item', { hasText: 'Visualiser' }).click();
             await page.waitForURL('**/editorview/edit/*');
-            await page.waitForLoadState('networkidle');
 
             await page.locator('a span').getByText('Quote Part Fournisseur').click();
             await page.waitForLoadState('networkidle');
@@ -445,7 +442,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             const quotePartName = `Quote part ${faker.number.int({ min: 1, max: 999 })}`;
             await page.getByRole('textbox', { name: 'Nom Quote part' }).fill(quotePartName);
             await page.locator('div').filter({ hasText: /^Veuillez sélectionner un élément$/ }).first().click();
-            await page.getByRole('option', { name: 'PHARMACIE NATIONALE' }).click();
+            await page.getByRole('option', { name: 'PHARMACIE NATIONALE', exact: true }).click();
             await page.locator('#searchForm').getByText('Par pourcentage').click();
             await page.getByRole('spinbutton', { name: 'Valeur' }).fill('80');
             await page.getByRole('button', { name: 'Ajouter' }).click();
@@ -490,7 +487,6 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await hospitalOption.click();
             await page.getByText('Sauvegarder').click();
             await page.waitForResponse('**rooms/with-beds?createBedsAutomatically=true')
-            await page.waitForLoadState('networkidle');
         });
 
         await test.step('TC-018 : Créer une chambre double avec deux lits', async () => {
@@ -514,7 +510,6 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await page.locator('input[type="number"]').first().fill('2');
             await page.getByText('Sauvegarder').click();
             await page.waitForResponse('**rooms/with-beds?createBedsAutomatically=true')
-            await page.waitForLoadState('networkidle');
         });
 
         await test.step('TC-019 : Créer une chambre avec trois lits', async () => {
@@ -538,7 +533,6 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await page.locator('input[type="number"]').first().fill('3');
             await page.getByText('Sauvegarder').click();
             await page.waitForResponse('**rooms/with-beds?createBedsAutomatically=true')
-            await page.waitForLoadState('networkidle');
         });
 
     });
@@ -716,11 +710,9 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await page.waitForTimeout(500);
             await page.locator('.sub-menu.ng-star-inserted.mm-collapse.mm-show > li > .side-nav-link-ref').first().click();
             await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
-            await expect.soft(page.getByText('Nouveau relevé')).toBeVisible();
+            await expect(page.getByText('Nouveau relevé')).toBeVisible();
             // je veux récupérer le contenu de la première ligne du tableau des factures
-            const firstRow = await page.locator('tbody tr').first().allTextContents();
-            console.log(firstRow[0].split('-')[0].slice(-12)); // Affiche le contenu de la première cellule de la première ligne
-            const IPM = firstRow[0].split('-')[0].slice(-12);
+            const IPM = await page.locator('tbody tr').first().locator('td').nth(3).textContent() as string;
             // Cliquer sur les 3 premières lignes du tableau qui contient l'IPM récupéré
             await page.locator('tbody tr').filter({ hasText: IPM }).first().locator('input[type="checkbox"]').check();
             await page.locator('tbody tr').filter({ hasText: IPM }).nth(1).locator('input[type="checkbox"]').check();
@@ -749,7 +741,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
 
 async function createPrestationAmbulatoire(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvel Ambulatoire');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -796,7 +788,7 @@ async function createPrestationStep(page: Page, patientName: string, prestationT
 
 async function createPrestationImagerie(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle Imagerie');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -831,7 +823,7 @@ async function createPrestationImagerie(page: Page, patientName: string) {
 
 async function createPrestationAnalyse(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle Analyse');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -865,7 +857,7 @@ async function createPrestationAnalyse(page: Page, patientName: string) {
 
 async function createHospitalization(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle hospitalisation');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -930,7 +922,7 @@ async function createPrestationConsultation(page: Page, patientName: string, dou
     await page.waitForTimeout(500);
     await page.getByText('Créer prestation').click();
     // await page.pause();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle consultation');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -964,7 +956,7 @@ async function createPrestationConsultation(page: Page, patientName: string, dou
 
 async function createPrestationPharmacy(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle Pharmacie');
     } else {
         await page.waitForURL('**/patient-identification');

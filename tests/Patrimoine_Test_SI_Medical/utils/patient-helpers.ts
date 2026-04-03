@@ -95,6 +95,7 @@ export async function login(page: Page, useAdmin: boolean = false) {
     switch (envConfig.baseUrl) {
         case 'https://msas.preprod.dokploy.eyone.net':
         case 'https://dpp.eyone.net':
+        case 'https://web-simedical.dpi.sn':
             await loginMSAS(page, email, password);
             break;
         case 'https://passmousso.app':
@@ -125,6 +126,7 @@ export async function loginWithCredentials(page: Page, email: string, password: 
     switch (envConfig.baseUrl) {
         case 'https://msas.preprod.dokploy.eyone.net':
         case 'https://dpp.eyone.net':
+        case 'https://web-simedical.dpi.sn':
             await loginMSAS(page, email, password);
             break;
         case 'https://passmousso.app':
@@ -204,6 +206,7 @@ export async function getFirstPatientFromAPI(page: Page) {
     switch (envConfig.baseUrl) {
         case 'https://msas.preprod.dokploy.eyone.net':
         case 'https://dpp.eyone.net':
+        case 'https://web-simedical.dpi.sn':
             await page.locator('a').filter({ hasText: 'DPUP' }).click();
             break;
         case 'https://passmousso.app':
