@@ -1,9 +1,9 @@
 name: Playwright - TNR Facturation & Caisse (Preprod)
 
 on:
-  schedule:
+  # schedule:
     # 8h, 12h, 16h UTC (Mettez à jour selon votre fuseau horaire)
-    - cron: '0 8,12,16 * * *'
+    # - cron: '0 8,12,16 * * *'
   push:
     branches: [main, develop]
     paths:
