@@ -95,7 +95,7 @@ export async function login(page: Page, useAdmin: boolean = false) {
     switch (envConfig.baseUrl) {
         case 'https://msas.preprod.dokploy.eyone.net':
         case 'https://dpp.eyone.net':
-        case 'https://web-simedical.dpi.sn':
+        case 'https://simedical.dpi.sn':
             await loginMSAS(page, email, password);
             break;
         case 'https://passmousso.app':
@@ -126,7 +126,7 @@ export async function loginWithCredentials(page: Page, email: string, password: 
     switch (envConfig.baseUrl) {
         case 'https://msas.preprod.dokploy.eyone.net':
         case 'https://dpp.eyone.net':
-        case 'https://web-simedical.dpi.sn':
+        case 'https://simedical.dpi.sn':
             await loginMSAS(page, email, password);
             break;
         case 'https://passmousso.app':
@@ -206,7 +206,7 @@ export async function getFirstPatientFromAPI(page: Page) {
     switch (envConfig.baseUrl) {
         case 'https://msas.preprod.dokploy.eyone.net':
         case 'https://dpp.eyone.net':
-        case 'https://web-simedical.dpi.sn':
+        case 'https://simedical.dpi.sn':
             await page.locator('a').filter({ hasText: 'DPUP' }).click();
             break;
         case 'https://passmousso.app':
@@ -239,10 +239,11 @@ export async function createPatientWithInsurer(page: Page) {
     const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
     await expect(patientFormTitle).toBeVisible();
     await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
-
+    // Fonction pour nettoyer les accents (é -> e, î -> i, etc.)
+    const cleanString = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
     const sexe = faker.person.sexType();
-    const firstNamePatient = faker.person.firstName(sexe);
-    const lastNamePatient = faker.person.lastName(sexe);
+    const firstNamePatient = cleanString(faker.person.firstName(sexe));
+    const lastNamePatient = cleanString(faker.person.lastName(sexe));
     const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
     const sexePatient = sexe === 'male' ? 'Masculin' : 'Féminin';
     // Remplir le formulaire de création de patient
@@ -335,10 +336,11 @@ export async function createPatientWithDoubleInsurer(page: Page) {
     const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
     await expect(patientFormTitle).toBeVisible();
     await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
-
+    // Fonction pour nettoyer les accents (é -> e, î -> i, etc.)
+    const cleanString = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
     const sexe = faker.person.sexType();
-    const firstNamePatient = faker.person.firstName(sexe);
-    const lastNamePatient = faker.person.lastName(sexe);
+    const firstNamePatient = cleanString(faker.person.firstName(sexe));
+    const lastNamePatient = cleanString(faker.person.lastName(sexe));
     const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
     const sexePatient = sexe === 'male' ? 'Masculin' : 'Féminin';
     // Remplir le formulaire de création de patient
@@ -470,9 +472,11 @@ async function loginFajma(page: Page, email: string, password: string) {
  * Conçu spécifiquement pour factoriser TC-002 et TC-003.
  */
 export async function fillPatientFormAndAddInsurer(page: Page) {
+    // Fonction pour nettoyer les accents (é -> e, î -> i, etc.)
+    const cleanString = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
     const sexe = faker.person.sexType();
-    const firstNamePatient = faker.person.firstName(sexe);
-    const lastNamePatient = faker.person.lastName(sexe);
+    const firstNamePatient = cleanString(faker.person.firstName(sexe));
+    const lastNamePatient = cleanString(faker.person.lastName(sexe));
     const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
     const sexePatient = sexe === 'male' ? 'Masculin' : 'Féminin';
 

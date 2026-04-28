@@ -423,8 +423,11 @@ test.describe('01_TNR-Facturation et Caisse', () => {
         });
 
         await test.step('TC-015 : Créer une quote-part de répartition sur les produits', async () => {
+            await page.reload();
+            await page.locator('#vertical-menu-btn').click();
+            await page.getByRole('link', { name: ' Produits 󰅀' }).click();
             // Naviguer vers la section de paramétrage des produits
-            await page.locator('a').filter({ hasText: 'Produits' }).first().click();
+            // await page.locator('a').filter({ hasText: 'Produits' }).first().click();
             await page.waitForTimeout(500);
             await page.locator('a[href*="/products/list"]').getByText('Rechercher').click();
             // Attendre que la page soit complètement chargée
@@ -442,7 +445,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             const quotePartName = `Quote part ${faker.number.int({ min: 1, max: 999 })}`;
             await page.getByRole('textbox', { name: 'Nom Quote part' }).fill(quotePartName);
             await page.locator('div').filter({ hasText: /^Veuillez sélectionner un élément$/ }).first().click();
-            await page.getByRole('option', { name: 'PHARMACIE NATIONALE', exact: true }).click();
+            await page.getByRole('option', { name: 'PHARMACIE NATIONALE' }).click();
             await page.locator('#searchForm').getByText('Par pourcentage').click();
             await page.getByRole('spinbutton', { name: 'Valeur' }).fill('80');
             await page.getByRole('button', { name: 'Ajouter' }).click();
@@ -648,6 +651,7 @@ test.describe('01_TNR-Facturation et Caisse', () => {
     });
 
     test('Encaissement des prestations avec un patient assuré', async ({ page }) => {
+        let patientName: string;
 
         await test.step('TC-037 : Encaisser une hospitalisation avec un patient assuré', async () => {
             await login(page);  // Utilise automatiquement les identifiants de l'environnement
@@ -668,7 +672,6 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             const refreshButton = page.getByText('Rafraîchir');
             await expect(refreshButton).toBeVisible();
             await refreshButton.click();
-            await page.waitForLoadState('networkidle');
             await encaisserPrestation(page, 'Analyse');
         });
 
@@ -734,14 +737,30 @@ test.describe('01_TNR-Facturation et Caisse', () => {
             await page.pause(); // Pause pour permettre l'inspection manuelle du récapitulatif de caisse généré
         });
 
-
+        await test.step('Facturer une consultation avec des actes médicaux et des produits de pharmacie avec un patient assuré', async () => {
+            await page.goto('/');
+            await page.locator('#vertical-menu-btn').click();
+            await navigateToPatientsList(page);
+            // On récupère le premier patient de la liste via l'API pour s'assurer qu'il existe
+            let patient = await getFirstPatientFromAPI(page);
+            if (!patient) {
+                throw new Error('Aucun patient trouvé via l\'API');
+            }
+            patientName = `${patient.firstName} ${patient.lastName}`;
+            // Créer une consultation pour ce patient
+            await createPrestationConsultation(page, patientName, true, true);
+            await page.getByRole('link', { name: ' Gestion financière 󰅀' }).click();
+            await page.getByRole('link', { name: 'Règlements à payer' }).click()
+            await encaisserPrestation(page, 'Consultation');
+            await page.pause();
+        });
     });
 });
 
 
 async function createPrestationAmbulatoire(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvel Ambulatoire');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -750,7 +769,6 @@ async function createPrestationAmbulatoire(page: Page, patientName: string) {
         await page.getByPlaceholder('Prénom, Nom, Numéro de télé').fill(patientName);
         await page.locator('button').filter({ hasText: 'Rechercher' }).click();
         await page.locator('tbody tr').filter({ hasText: patientName }).first().click();
-        await page.waitForLoadState('networkidle');
         await expect(page.getByText('Nouvelle prestation')).toBeVisible();
         // Créer une prestation d'ambulatoire
         await page.locator('button').filter({ hasText: 'Ambulatoire' }).click();
@@ -764,12 +782,11 @@ async function createPrestationAmbulatoire(page: Page, patientName: string) {
     await page.getByRole('combobox', { name: 'Veuillez sélectionner un élé' }).click();
     await page.locator('span').filter({ hasText: 'ACTE AMBULATOIRE' }).first().click();
     await page.waitForResponse('**/prestations-items/medical-act-selection');
-    await page.waitForLoadState('networkidle');
     await Promise.all([
         page.waitForResponse('**/dokploy-medical-billing/1.0/prestations/rev2', { timeout: 15000 }).catch(() => null), // catch évite de planter si la req n'est pas strictement nécessaire
         page.getByText('Enregistrer').click()
     ]);
-    await expect.soft(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Facture' })).toBeVisible();
     await expect.soft(page.locator('#regenerate')).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
@@ -788,7 +805,7 @@ async function createPrestationStep(page: Page, patientName: string, prestationT
 
 async function createPrestationImagerie(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle Imagerie');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -823,7 +840,7 @@ async function createPrestationImagerie(page: Page, patientName: string) {
 
 async function createPrestationAnalyse(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle Analyse');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -857,7 +874,7 @@ async function createPrestationAnalyse(page: Page, patientName: string) {
 
 async function createHospitalization(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle hospitalisation');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -917,12 +934,12 @@ async function createHospitalization(page: Page, patientName: string) {
     await expect.soft(page.getByText('Facture régénérée avec succès')).toBeVisible();
 }
 
-async function createPrestationConsultation(page: Page, patientName: string, doublePriseEnCharge: boolean = false) {
+async function createPrestationConsultation(page: Page, patientName: string, medicalActe: boolean = false, traitement: boolean = false) {
     await page.locator('a').filter({ hasText: 'Prestations' }).first().click();
     await page.waitForTimeout(500);
     await page.getByText('Créer prestation').click();
     // await page.pause();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle consultation');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -947,7 +964,44 @@ async function createPrestationConsultation(page: Page, patientName: string, dou
     await page.waitForLoadState('networkidle');
     // await page.locator('h4', { hasText: 'Total Facture' }).scrollIntoViewIfNeeded();
     await page.getByText('Enregistrer').click();
-    await page.waitForLoadState('networkidle');
+    if (medicalActe) {
+        await page.getByRole('button', { name: 'Actes Médicaux' }).click();
+        const addActButton = page.getByRole('button', { name: ' Ajouter un acte' });
+        await expect(addActButton).toBeVisible();
+        await addActButton.click();
+        await expect(page.getByRole('heading', { name: 'Création de l\'acte médical' })).toBeVisible();
+        await page.getByRole('combobox', { name: 'Acte *' }).click();
+        await page.locator('span').filter({ hasText: 'ACTE AMBULATOIRE' }).first().click();
+        await page.waitForResponse('**/prestations-items/medical-act-selection');
+        await page.locator('div').filter({ hasText: /^Veuillez sélectionner un élément$/ }).first().click();
+        await page.getByRole('option', { name: 'Dr Ndiaye' }).click();
+        await page.getByRole('button', { name: ' Enregistrer' }).click();
+        await page.waitForLoadState('networkidle');
+        await page.getByRole('button', { name: 'OK' }).click();
+        await page.getByRole('button', { name: ' Fermer' }).click();
+    }
+
+    if (traitement) {
+        await page.getByRole('button', { name: 'Traitements' }).click();
+        const addMedecine = page.getByRole('button', { name: ' Ajouter un médicament' });
+        await expect(addMedecine).toBeVisible();
+        await addMedecine.click();
+        await page.getByRole('combobox', { name: 'Produit *' }).pressSequentially('DOLI', { delay: 100 });
+        await page.locator('span').filter({ hasText: 'DOLIPRANE' }).first().click();
+        await page.getByRole('spinbutton', { name: 'Quantité' }).fill('3');
+        await page.getByRole('spinbutton', { name: 'Prix unitaire appliqué' }).click();
+        const response = page.waitForResponse('**/pharmacies/inputs');
+        await response;
+        await page.getByRole('button', { name: ' Enregistrer' }).click();
+        await page.waitForLoadState('networkidle');
+        const successDialog = page.getByRole('dialog', { name: 'Succès' });
+        await expect(successDialog).toBeVisible({ timeout: 15000 });
+        await successDialog.getByRole('button', { name: 'OK' }).click();
+        await page.getByRole('button', { name: 'Fermer' }).click();
+        await expect.soft(page.getByText('Dues à la mise à jour, une gé')).toBeVisible();
+        await page.locator('#regenerate').click();
+        await page.getByRole('button', { name: 'Facturation' }).click();
+    }
     await expect.soft(page.getByText('Facture', { exact: true })).toBeVisible();
     await page.locator('#regenerate').click();
     await page.waitForLoadState('networkidle');
@@ -956,7 +1010,7 @@ async function createPrestationConsultation(page: Page, patientName: string, dou
 
 async function createPrestationPharmacy(page: Page, patientName: string) {
     await page.getByText('Créer prestation').click();
-    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://web-simedical.dpi.sn') {
+    if (envConfig.baseUrl === 'https://dpp.eyone.net' || envConfig.baseUrl === 'https://simedical.dpi.sn') {
         await createPrestationStep(page, patientName, 'Nouvelle Pharmacie');
     } else {
         await page.waitForURL('**/patient-identification');
@@ -979,7 +1033,7 @@ async function createPrestationPharmacy(page: Page, patientName: string) {
         await Armoire.waitFor({ state: 'visible', timeout: 3000 });
         // Sélectionner une prestation
         await page.locator('.col-12 > .ng-select > .ng-select-container').first().click();
-        const hospitalOption = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: 'PHARMACIE' }).first();
+        const hospitalOption = page.locator('.ng-dropdown-panel .ng-option').filter({ hasText: 'PEDIATRIE' }).first();
         await hospitalOption.click();
 
     } catch (e) {
@@ -1008,10 +1062,11 @@ async function createPatient(page: Page) {
     const patientFormTitle = page.locator('h6', { hasText: 'Identité du patient - Informations Principales' });
     await expect(patientFormTitle).toBeVisible();
     await expect(patientFormTitle).toHaveText('Identité du patient - Informations Principales');
-
+    // Fonction pour nettoyer les accents (é -> e, î -> i, etc.)
+    const cleanString = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
     const sexe = faker.person.sexType();
-    const firstNamePatient = faker.person.firstName(sexe);
-    const lastNamePatient = faker.person.lastName(sexe);
+    const firstNamePatient = cleanString(faker.person.firstName(sexe));
+    const lastNamePatient = cleanString(faker.person.lastName(sexe));
     const birthDate = faker.date.birthdate({ min: 18, max: 65, mode: 'age' });
     const sexePatient = sexe === 'male' ? 'Masculin' : 'Féminin';
     // Remplir le formulaire de création de patient
@@ -1040,7 +1095,6 @@ async function createPatient(page: Page) {
 }
 
 async function encaisserPrestation(page: Page, prestationName: string) {
-    await page.waitForLoadState('networkidle');
     // await expect(page.getByRole('heading', { name: 'à payer' })).toBeVisible();
     await page.waitForTimeout(2000); // Attendre 2 secondes pour s'assurer que le tableau est bien chargé
     const rowsText = await page.locator('tbody tr').allTextContents();
